@@ -1,7 +1,7 @@
 import { useUserCollection } from "../app/hooks/useUserCollection";
 
 function MyAccount(): React.ReactElement {
-  const { isAuthenticated, user } = useUserCollection();
+  const { isAuthenticated, user, collection } = useUserCollection();
 
   return (
     <>

@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+# v22 - Frontend
+Acortador de enlaces
+=======
+>>>>>>> aa0308a (estadisticas de enlaces funcionando)
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -52,3 +59,7 @@ export default tseslint.config({
   },
 })
 ```
+<<<<<<< HEAD
+=======
+>>>>>>> d91a333 (commit inicial)
+>>>>>>> aa0308a (estadisticas de enlaces funcionando)
