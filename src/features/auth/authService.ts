@@ -17,6 +17,7 @@ export type LoginResponse = {
     name: string;
     email: string;
     statistics: { totalClicks: number; totalVisitors: number };
+    linkHistory: { link: string; date: Date }[];
   };
 };
 
@@ -27,6 +28,7 @@ export type TestLogin = {
     name: string;
     email: string;
     statistics: { totalClicks: number; totalVisitors: number };
+    linkHistory: { link: string; date: Date }[];
   };
 };
 

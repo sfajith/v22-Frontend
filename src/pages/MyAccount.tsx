@@ -20,7 +20,7 @@ function MyAccount(): React.ReactElement {
               <br />
               {user?.email}
             </h3>
-            <h3>{user?.statistics.totalVisitors}</h3>
+            <h3>{user?.linkHistory[2].link}</h3>
           </div>
         )}
       </div>
