@@ -4,7 +4,8 @@ export interface User {
   username: string;
   email: string;
   statistics: { totalClicks: number; totalVisitors: number };
-  linkHistory: { link: string; date: Date }[];
+  LinkActivity: { link: string; date: Date }[];
+  clickAnalitycs: { ip: string; date: Date }[];
 }
 
 export interface AuthState {

@@ -17,7 +17,8 @@ export type LoginResponse = {
     name: string;
     email: string;
     statistics: { totalClicks: number; totalVisitors: number };
-    linkHistory: { link: string; date: Date }[];
+    LinkActivity: { link: string; date: Date }[];
+    clickAnalitycs: { ip: string; date: Date }[];
   };
 };
 
@@ -28,7 +29,8 @@ export type TestLogin = {
     name: string;
     email: string;
     statistics: { totalClicks: number; totalVisitors: number };
-    linkHistory: { link: string; date: Date }[];
+    LinkActivity: { link: string; date: Date }[];
+    clickAnalitycs: { ip: string; date: Date }[];
   };
 };
 
@@ -116,9 +118,7 @@ export async function getUserCollection(
   }
 
   const data: CollectionResponse = await response.json();
-  console.log(
-    `http://localhost:3000/api/user/${payload.username}/collection?cursor=${cursor}`
-  );
+
   return data;
 }
 
