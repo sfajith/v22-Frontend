@@ -11,6 +11,7 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { AppSidebar } from "@/components/myAccount/App-sidebar";
 
 function Layout() {
   const dispatch = useAppDispatch();
@@ -39,18 +40,25 @@ function Layout() {
             {!auth.isAuthenticated ? (
               <FormControl />
             ) : (
-              <Menubar>
-                <MenubarMenu>
-                  <MenubarTrigger>
-                    <Link to={"/"}>Inicio</Link>
-                  </MenubarTrigger>
-                </MenubarMenu>
-                <MenubarMenu>
-                  <MenubarTrigger>
-                    <Link to={"/cuenta"}>Mi cuenta</Link>
-                  </MenubarTrigger>
-                </MenubarMenu>
-              </Menubar>
+              <>
+                <Menubar>
+                  <MenubarMenu>
+                    <MenubarTrigger>
+                      <Link to={"/"}>Inicio</Link>
+                    </MenubarTrigger>
+                  </MenubarMenu>
+                  <MenubarMenu>
+                    <MenubarTrigger>
+                      <Link to={"/cuenta"}>Analiticas</Link>
+                    </MenubarTrigger>
+                  </MenubarMenu>
+                </Menubar>
+
+                <AppSidebar
+                  email={auth.user?.email}
+                  username={auth.user?.username}
+                />
+              </>
             )}
           </div>
         </div>

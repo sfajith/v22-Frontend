@@ -2,8 +2,7 @@ import { useUserCollection } from "../app/hooks/useUserCollection";
 import TotalCard from "../components/myAccount/charts/TotalCard";
 import { UniqueChart } from "../components/myAccount/charts/UniqueChart";
 import { CharTabs } from "../components/myAccount/CharTabs";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "../components/myAccount/App-sidebar";
+import CountUp from "react-countup";
 
 function MyAccount(): React.ReactElement {
   const { isAuthenticated, user, collection } = useUserCollection();
@@ -27,28 +26,50 @@ function MyAccount(): React.ReactElement {
   console.log(linActivityData);
   return (
     <div className="p-6">
-      <div className="flex gap-6 w-full ">
+      <div className="grid grid-cols-4 gap-4">
         <TotalCard
           title="Total de enlaces"
-          total={collection.totalCount}
+          children={
+            <CountUp end={collection.totalCount} decimals={0} duration={2} />
+          }
           description={"Enlaces totales creados hasta la fecha"}
         />
 
         <TotalCard
-          total={user?.statistics.totalClicks}
+          children={
+            <CountUp
+              end={user?.statistics.totalClicks}
+              decimals={0}
+              duration={2}
+            />
+          }
           description={"Clics hechos por los usuarios en tus enlaces"}
           title="Total de clics"
         />
         <TotalCard
-          total={user?.statistics.totalVisitors}
+          children={
+            <CountUp
+              end={user?.statistics.totalVisitors}
+              decimals={0}
+              duration={2}
+            />
+          }
           description={"Visitantes totaldes a tus enlaces"}
           title="Total de visitantes"
         />
         <TotalCard
           title="CTR"
-          total={Number(
-            (user?.statistics.totalClicks / collection.totalCount).toFixed(2)
-          )}
+          children={
+            <CountUp
+              end={Number(
+                (user?.statistics.totalClicks / collection.totalCount).toFixed(
+                  2
+                )
+              )}
+              decimals={2}
+              duration={2}
+            />
+          }
           description={"Tasa promedio de clics por enlace"}
         />
       </div>
