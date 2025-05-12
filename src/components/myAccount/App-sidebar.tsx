@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import {
   Sheet,
   SheetClose,
@@ -13,6 +12,8 @@ import {
 } from "@/components/ui/sheet";
 import { UserCog } from "lucide-react";
 import md5 from "md5";
+import { useState } from "react";
+import { SidebarAccordion } from "./SidebarAccordion";
 
 type PropAppSidebar = {
   email?: string;
@@ -22,6 +23,8 @@ type PropAppSidebar = {
 export function AppSidebar({ email, username }: PropAppSidebar) {
   const hash = md5(email || "");
   const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+
+  const [open, setOpen] = useState<boolean>(false);
 
   return (
     <Sheet>
@@ -35,7 +38,7 @@ export function AppSidebar({ email, username }: PropAppSidebar) {
             Modifica tu perfil aquí. Guarda los cambios cuando termines.
           </SheetDescription>
         </SheetHeader>
-        <div className="grid gap-4 px-4">
+        <div className="grid gap-4 ">
           <div className="text-center">
             <h3>Mi perfil</h3>
           </div>
@@ -52,10 +55,15 @@ export function AppSidebar({ email, username }: PropAppSidebar) {
               <span>{email}</span>
             </div>
           </div>
+          <div className="px-4">
+            <SidebarAccordion />
+          </div>
         </div>
         <SheetFooter>
           <SheetClose asChild>
-            <Button type="submit">Save changes</Button>
+            <Label className="text-lg text-muted-foreground text-center cursor-pointer">
+              Cerrar Sesión
+            </Label>
           </SheetClose>
         </SheetFooter>
       </SheetContent>
