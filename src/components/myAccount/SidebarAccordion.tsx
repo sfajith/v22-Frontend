@@ -4,15 +4,35 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Input } from "../ui/input";
+import { useUserAccount } from "../../app/hooks/useUserAccount";
 
 export function SidebarAccordion() {
+  const { form, setForm, handlerChangePassword } = useUserAccount();
+
+  const changePasswordHandler = async () => {
+    await handlerChangePassword();
+  };
+
   return (
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="item-1">
         <AccordionTrigger>Cambiar Contraseña</AccordionTrigger>
         <AccordionContent>
-          <div className="px-6 bg-gray-100 rounded-lg pt-2 pb-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!form.password || !form.newPassword || !form.rePassword) {
+                alert("Todos los campos son obligatorios.");
+                return;
+              }
+              if (form.newPassword !== form.rePassword) {
+                alert("Las nuevas contraseñas no coinciden.");
+                return;
+              }
+              changePasswordHandler();
+            }}
+            className="px-6 bg-gray-100 rounded-lg pt-2 pb-4"
+          >
             <div className="formDiv">
               <label
                 className="text-xs text-muted-foreground"
@@ -25,9 +45,13 @@ export function SidebarAccordion() {
                 type="password"
                 name="password"
                 id="password"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+                required
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setForm({ ...form, password: e.target.value });
+                }}
               />
             </div>
+
             <div className="formDiv">
               <label
                 className="text-xs text-muted-foreground"
@@ -37,36 +61,44 @@ export function SidebarAccordion() {
               </label>
               <input
                 className="bg-white"
-                type="newPassword"
+                type="password"
                 name="newPassword"
                 id="newPassword"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+                required
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setForm({ ...form, newPassword: e.target.value });
+                }}
               />
             </div>
+
             <div className="formDiv">
               <label
                 className="text-xs text-muted-foreground"
-                htmlFor="RePassword"
+                htmlFor="rePassword"
               >
                 Confirma tu nueva Contraseña
               </label>
               <input
                 className="bg-white"
-                type="RePassword"
-                name="RePassword"
-                id="RePassword"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+                type="password"
+                name="rePassword"
+                id="rePassword"
+                required
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setForm({ ...form, rePassword: e.target.value });
+                }}
               />
             </div>
+
             <div className="formDiv">
               <button
+                type="submit"
                 className="bg-gradient-mascoti buttom-mascoti"
-                onClick={() => {}}
               >
                 Confirmar
               </button>
             </div>
-          </div>
+          </form>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-2">

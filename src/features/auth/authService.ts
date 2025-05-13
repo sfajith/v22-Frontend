@@ -153,3 +153,39 @@ export async function deleteLink(payload: deletePayload) {
   const data: deleteResponse = await response.json();
   return data;
 }
+
+//cambio de contraseña
+
+type changeType = {
+  username: string;
+  token: string | null;
+  body: { password: string; newPassword: string };
+};
+
+type changeResponse = {
+  success: string;
+};
+type changeError = {
+  error: string;
+};
+export async function changePassword(payload: changeType) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/${payload.username}/reset`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${payload.token}`,
+      },
+      body: JSON.stringify(payload.body),
+    }
+  );
+
+  const data: changeResponse | changeError = await response.json();
+  if (!response.ok) {
+    const err = data as ErrorResponse;
+    throw new Error(err.error || "Error al cambiar la contraseña");
+  }
+
+  return data as changeResponse;
+}

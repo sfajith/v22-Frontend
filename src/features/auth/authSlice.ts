@@ -14,6 +14,7 @@ const initialState: AuthState = {
     userLinks: [],
   },
   error: null,
+  success: null,
 };
 
 const authSlice = createSlice({
@@ -25,6 +26,12 @@ const authSlice = createSlice({
     },
     disableError(state) {
       state.error = null;
+    },
+    globalSuccess(state, action) {
+      state.success = action.payload;
+    },
+    disableSuccess(state) {
+      state.success = null;
     },
     loginStart(state) {
       state.loading = true;
@@ -115,5 +122,7 @@ export const {
   pushCollection,
   addNewLink,
   loadLocalCollection,
+  globalSuccess,
+  disableSuccess,
 } = authSlice.actions;
 export default authSlice.reducer;

@@ -21,4 +21,5 @@ export interface AuthState {
     userLinks: Link[];
   };
   error: string | null;
+  success: string | null;
 }

@@ -1,5 +1,3 @@
-import { Label } from "@/components/ui/label";
-
 import {
   Sheet,
   SheetClose,
@@ -12,10 +10,8 @@ import {
 } from "@/components/ui/sheet";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -25,7 +21,6 @@ import { UserCog } from "lucide-react";
 import md5 from "md5";
 import { SidebarAccordion } from "./SidebarAccordion";
 import { Button } from "../ui/button";
-import { useNavigate } from "react-router-dom";
 
 type PropAppSidebar = {
   email?: string;
@@ -35,7 +30,6 @@ type PropAppSidebar = {
 export function AppSidebar({ email, username }: PropAppSidebar) {
   const hash = md5(email || "");
   const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-  const navigate = useNavigate();
 
   const logOutHandler = () => {
     localStorage.removeItem("token"); // Eliminar token

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/menubar";
 import { AppSidebar } from "@/components/myAccount/App-sidebar";
 import { Error } from "@/components/form/Error";
+import { Success } from "@/components/form/Success";
 
 function Layout() {
   const dispatch = useAppDispatch();
@@ -33,8 +34,15 @@ function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
       {auth.error && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40">
-          <Error error={auth.error} />
+        <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black/40 pointer-events-auto">
+          <div className="pointer-events-auto">
+            <Error error={auth.error} />
+          </div>
+        </div>
+      )}
+      {auth.success && (
+        <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black/40">
+          <Success success={auth.success} />
         </div>
       )}
       <header>

@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 
 export function Success({
   title = "¡Éxito!",
-  message = "Tu acción se completó correctamente.",
+  success = "Tu acción se completó correctamente.",
   actionText = "Volver al inicio",
   actionLink = "/",
 }: {
   title?: string;
-  message?: string;
+  success?: string;
   actionText?: string;
   actionLink?: string;
 }) {
@@ -29,7 +29,7 @@ export function Success({
         <CheckCircle className="w-12 h-12" />
       </motion.div>
       <h2 className="text-2xl font-bold text-gray-800 mb-2">{title}</h2>
-      <p className="text-gray-600 mb-6">{message}</p>
+      <p className="text-gray-600 mb-6">{success}</p>
       <motion.div whileHover={{ scale: 1.05 }}>
         <Link
           to={actionLink}
