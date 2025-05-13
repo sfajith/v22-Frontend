@@ -20,6 +20,12 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    globalError(state, action) {
+      state.error = action.payload;
+    },
+    disableError(state) {
+      state.error = null;
+    },
     loginStart(state) {
       state.loading = true;
       state.error = null;
@@ -96,6 +102,8 @@ const authSlice = createSlice({
 });
 
 export const {
+  globalError,
+  disableError,
   loginStart,
   loginSuccess,
   loginFailure,

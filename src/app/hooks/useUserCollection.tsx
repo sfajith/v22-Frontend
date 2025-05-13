@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../hooks";
 import {
   startLoadCollection,
   loadCollection,
-  loadCollectionFailure,
+  globalError,
   pushCollection,
   deleteFromCollection,
 } from "../../features/auth/authSlice";
@@ -16,6 +16,7 @@ export function useUserCollection() {
   const isAuthenticated = auth.isAuthenticated;
   const collection = auth.collection;
   const user = auth.user;
+  const error = auth.error;
 
   // Cargar los enlaces cuando el usuario esté autenticado y su nombre de usuario esté disponible
   useEffect(() => {
@@ -55,10 +56,10 @@ export function useUserCollection() {
         }
       } catch (error) {
         dispatch(
-          loadCollectionFailure(
+          globalError(
             error instanceof Error
               ? error.message
-              : "Error al cargar enlaces de usuario authenticado"
+              : "Error al cargar enlaces del usuario"
           )
         );
       }
@@ -72,13 +73,18 @@ export function useUserCollection() {
       username: user?.username || "linkAdmin",
       linkId: id,
     };
-
-    if (isAuthenticated) {
-      await deleteLink(payload);
+    try {
+      if (isAuthenticated) {
+        await deleteLink(payload);
+      }
+      dispatch(deleteFromCollection({ id }));
+    } catch (error) {
+      dispatch(
+        globalError(
+          error instanceof Error ? error.message : "Error al eliminar el enlace"
+        )
+      );
     }
-
-    dispatch(deleteFromCollection({ id }));
-    return;
   };
 
   return {
@@ -87,5 +93,6 @@ export function useUserCollection() {
     isAuthenticated,
     collection,
     user,
+    error,
   };
 }

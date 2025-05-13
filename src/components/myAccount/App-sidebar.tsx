@@ -10,10 +10,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { UserCog } from "lucide-react";
 import md5 from "md5";
-import { useState } from "react";
 import { SidebarAccordion } from "./SidebarAccordion";
+import { Button } from "../ui/button";
+import { useNavigate } from "react-router-dom";
 
 type PropAppSidebar = {
   email?: string;
@@ -23,8 +35,12 @@ type PropAppSidebar = {
 export function AppSidebar({ email, username }: PropAppSidebar) {
   const hash = md5(email || "");
   const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+  const navigate = useNavigate();
 
-  const [open, setOpen] = useState<boolean>(false);
+  const logOutHandler = () => {
+    localStorage.removeItem("token"); // Eliminar token
+    window.location.href = "/";
+  };
 
   return (
     <Sheet>
@@ -61,9 +77,31 @@ export function AppSidebar({ email, username }: PropAppSidebar) {
         </div>
         <SheetFooter>
           <SheetClose asChild>
-            <Label className="text-lg text-muted-foreground text-center cursor-pointer">
-              Cerrar Sesión
-            </Label>
+            <AlertDialog>
+              <AlertDialogTrigger className="cursor-pointer text-left text-muted-foreground">
+                Cerrar sesion
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Seguro que quieres cerrar sesion?
+                  </AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="cursor-pointer">
+                    Cancelar
+                  </AlertDialogCancel>
+                  <Button
+                    className="cursor-pointer bg-red-400 hover:bg-red-300"
+                    onClick={() => {
+                      logOutHandler();
+                    }}
+                  >
+                    Salir
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </SheetClose>
         </SheetFooter>
       </SheetContent>

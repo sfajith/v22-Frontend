@@ -1,0 +1,43 @@
+import { CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+
+export function Success({
+  title = "¡Éxito!",
+  message = "Tu acción se completó correctamente.",
+  actionText = "Volver al inicio",
+  actionLink = "/",
+}: {
+  title?: string;
+  message?: string;
+  actionText?: string;
+  actionLink?: string;
+}) {
+  return (
+    <motion.div
+      className="max-w-md mx-auto mt-24 p-6 rounded-2xl shadow-lg bg-white text-center border border-gray-200"
+      initial={{ opacity: 0, scale: 0.9, y: 30 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      <motion.div
+        className="flex justify-center text-green-500 mb-4"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring", stiffness: 120, delay: 0.3 }}
+      >
+        <CheckCircle className="w-12 h-12" />
+      </motion.div>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">{title}</h2>
+      <p className="text-gray-600 mb-6">{message}</p>
+      <motion.div whileHover={{ scale: 1.05 }}>
+        <Link
+          to={actionLink}
+          className="inline-block px-5 py-2 rounded-md bg-green-500 text-white font-medium hover:bg-green-600 transition"
+        >
+          {actionText}
+        </Link>
+      </motion.div>
+    </motion.div>
+  );
+}

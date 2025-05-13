@@ -31,13 +31,13 @@ const linkSlice = createSlice({
         state.link = JSON.parse(linkArray).reverse();
       }
     },
-    errorLink(state, action) {
+    cleanLink(state) {
       state.loading = false;
       state.generated = false;
-      state.error = action.payload;
+      state.error = null;
     },
   },
 });
 
-export const { startLink, createdLink, errorLink } = linkSlice.actions;
+export const { startLink, createdLink, cleanLink } = linkSlice.actions;
 export default linkSlice.reducer;

@@ -1,7 +1,7 @@
 import { Link } from "../links/linkTypes";
-export type LinkType = Link;
-
-export type LinkPayload = {
+type LinkType = Link;
+type LinkErrorType = { error: string };
+type LinkPayload = {
   token?: string | null;
   link: {
     originalUrl: string;
@@ -9,7 +9,7 @@ export type LinkPayload = {
   };
 };
 
-export async function newLink(payload: LinkPayload): Promise<LinkType> {
+export async function newLink(payload: LinkPayload) {
   const response = await fetch("http://localhost:3000/new", {
     method: "POST",
     headers: {
@@ -18,9 +18,10 @@ export async function newLink(payload: LinkPayload): Promise<LinkType> {
     },
     body: JSON.stringify(payload.link),
   });
+  const data: LinkType | LinkErrorType = await response.json();
   if (!response.ok) {
-    throw new Error("Error al acortar enlace");
+    const err = data as LinkErrorType;
+    throw new Error(err.error || "Error al acortar enlace");
   }
-  const data = await response.json();
-  return data;
+  return data as LinkType;
 }

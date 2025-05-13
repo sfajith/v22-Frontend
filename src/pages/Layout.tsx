@@ -12,6 +12,7 @@ import {
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import { AppSidebar } from "@/components/myAccount/App-sidebar";
+import { Error } from "@/components/form/Error";
 
 function Layout() {
   const dispatch = useAppDispatch();
@@ -31,6 +32,11 @@ function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {auth.error && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40">
+          <Error error={auth.error} />
+        </div>
+      )}
       <header>
         <div className="containerMenu">
           <div className="logoContainer">

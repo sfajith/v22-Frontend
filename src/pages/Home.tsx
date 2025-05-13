@@ -4,13 +4,18 @@ import { ButtomHospet } from "@/components/ui/ButtomHospet";
 import { newLink } from "../features/links/linkService";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { startLink, createdLink, errorLink } from "../features/links/linkSlice";
+import { startLink, createdLink, cleanLink } from "../features/links/linkSlice";
 import { LinkList } from "../components/Home/LinkList";
 import CardList from "../components/myAccount/CardList";
 import { FiCopy } from "react-icons/fi";
 import { toast } from "sonner";
 import { useUserCollection } from "../app/hooks/useUserCollection";
-import { addNewLink, loadLocalCollection } from "../features/auth/authSlice";
+import {
+  addNewLink,
+  loadLocalCollection,
+  globalError,
+} from "../features/auth/authSlice";
+import { Error } from "../components/form/Error";
 
 function Home() {
   // `userCode` es opcional y se usa solo cuando el usuario quiere personalizar la URL
@@ -68,12 +73,10 @@ function Home() {
         setCustom(false);
       }
       dispatch(addNewLink({ link }));
-    } catch (error) {
-      dispatch(
-        errorLink(
-          error instanceof Error ? error.message : "Error al crear nuevo enlace"
-        )
-      );
+    } catch (error: unknown) {
+      dispatch(cleanLink());
+      const err = error as Error;
+      dispatch(globalError(err.message));
     }
   };
   // Copia el enlace corto en el portapapeles
@@ -138,6 +141,7 @@ function Home() {
           <Input
             type="text"
             value={form.originalUrl}
+            required
             className="rounded-full"
             placeholder="Pega el enlace que deseas acortar..."
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

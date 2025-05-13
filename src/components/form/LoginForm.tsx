@@ -29,8 +29,11 @@ function LoginForm() {
       localStorage.setItem("token", data.token);
       console.log(data);
     } catch (error) {
-      dispatch(loginFailure(error));
-      console.error("Error en el login", error);
+      dispatch(
+        loginFailure(
+          error instanceof Error ? error.message : "Error al ingresar"
+        )
+      );
     }
   };
 

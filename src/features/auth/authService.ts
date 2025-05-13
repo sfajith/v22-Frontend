@@ -45,14 +45,16 @@ export async function registerUser(
     },
     body: JSON.stringify(payload),
   });
+  const data: { success: string } | { error: string } = await response.json();
   if (!response.ok) {
-    throw new Error("Error registro fallido");
+    const err = data as { error: string };
+    throw new Error(err.error || "Login fallido");
   }
-  const data: { success: string } = await response.json();
-  return data;
+  return data as { success: string };
 }
 
 // Función que maneja el login de un usuario
+type ErrorResponse = { error: string };
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
   const response = await fetch("http://localhost:3000/api/user/login", {
     method: "POST",
@@ -61,12 +63,13 @@ export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
     },
     body: JSON.stringify(payload),
   });
+  const data: LoginResponse | ErrorResponse = await response.json();
   if (!response.ok) {
-    throw new Error("Login fallido");
+    const err = data as ErrorResponse;
+    throw new Error(err.error || "Login fallido");
   }
 
-  const data: LoginResponse = await response.json();
-  return data;
+  return data as LoginResponse;
 }
 
 // Función para verificar la validez del token
