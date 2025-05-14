@@ -1,4 +1,4 @@
-import { changePassword } from "@/features/auth/authService";
+import { changePassword, deleteAccount } from "@/features/auth/authService";
 import { useState } from "react";
 import { useAppSelector, useAppDispatch } from "../hooks";
 import {
@@ -55,5 +55,41 @@ export function useUserAccount() {
       }
     }
   };
-  return { handlerChangePassword, form, setForm };
+
+  const handlerDeleteUserAcount = async () => {
+    const token = localStorage.getItem("token");
+    if (auth.user) {
+      const payload = {
+        token,
+        username: auth.user.username,
+        body: {
+          password: form.password,
+        },
+      };
+      try {
+        const response = await deleteAccount(payload);
+        if (response.success) {
+          setForm({ password: "", newPassword: "", rePassword: "" });
+          dispatch(globalSuccess(response.success));
+          setTimeout(() => {
+            localStorage.removeItem("token"); // Eliminar token
+            window.location.href = "/";
+          }, 1000);
+        }
+      } catch (error) {
+        setForm({ password: "", newPassword: "", rePassword: "" });
+        dispatch(
+          globalError(
+            error instanceof Error
+              ? error.message
+              : "No se pudo eliminar la cuenta"
+          )
+        );
+        setTimeout(() => {
+          dispatch(disableError());
+        }, 5000);
+      }
+    }
+  };
+  return { handlerChangePassword, handlerDeleteUserAcount, form, setForm };
 }

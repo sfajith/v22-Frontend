@@ -189,3 +189,34 @@ export async function changePassword(payload: changeType) {
 
   return data as changeResponse;
 }
+
+type deleteType = {
+  username: string;
+  token: string | null;
+  body: { password: string };
+};
+type deleteUserResponse = {
+  success: string;
+};
+type deleteError = {
+  error: string;
+};
+export async function deleteAccount(payload: deleteType) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/${payload.username}/delete`,
+    {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+        Authorization: `Bearer ${payload.token}`,
+      },
+      body: JSON.stringify(payload.body),
+    }
+  );
+  const data: deleteUserResponse | deleteError = await response.json();
+  if (!response.ok) {
+    const err = data as deleteError;
+    throw new Error(err.error || "No se pudo eliminar el usuario");
+  }
+  return data as deleteUserResponse;
+}

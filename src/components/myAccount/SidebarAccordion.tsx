@@ -5,12 +5,19 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useUserAccount } from "../../app/hooks/useUserAccount";
+import { useState } from "react";
 
 export function SidebarAccordion() {
-  const { form, setForm, handlerChangePassword } = useUserAccount();
+  const [eliminar, setEliminar] = useState<string>("");
+  const { form, setForm, handlerChangePassword, handlerDeleteUserAcount } =
+    useUserAccount();
 
   const changePasswordHandler = async () => {
     await handlerChangePassword();
+  };
+
+  const deleteUserHandler = async () => {
+    await handlerDeleteUserAcount();
   };
 
   return (
@@ -37,6 +44,7 @@ export function SidebarAccordion() {
                 type="password"
                 name="password"
                 id="password"
+                value={form.newPassword}
                 required
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setForm({ ...form, password: e.target.value });
@@ -112,7 +120,13 @@ export function SidebarAccordion() {
           Eliminar Cuenta
         </AccordionTrigger>
         <AccordionContent>
-          <div className="px-6 bg-red-100 rounded-lg pt-2 pb-4">
+          <form
+            className="px-6 bg-red-100 rounded-lg pt-2 pb-4"
+            onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+              e.preventDefault();
+              deleteUserHandler();
+            }}
+          >
             <div className="formDiv">
               <label
                 className="text-xs text-muted-foreground"
@@ -121,11 +135,14 @@ export function SidebarAccordion() {
                 Ingresa tu Contraseña
               </label>
               <input
+                required
                 className="bg-white"
                 type="password"
                 name="password"
                 id="password"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setForm({ ...form, password: e.target.value });
+                }}
               />
             </div>
             <div className="formDiv">
@@ -136,20 +153,31 @@ export function SidebarAccordion() {
                 Confirma escribiendo "eliminar"
               </label>
               <input
+                required
                 className="bg-white"
-                type="newPassword"
-                name="newPassword"
-                id="newPassword"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {}}
+                type="text"
+                name="eliminar"
+                id="eliminar"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setEliminar(e.target.value);
+                }}
               />
+              {eliminar === "eliminar" && (
+                <p className="text-red-500 text-xs mt-1">
+                  Seguro? te vamos a extrañar 😞
+                </p>
+              )}
             </div>
 
             <div className="formDiv">
-              <button className="bg-red-400 buttom-mascoti" onClick={() => {}}>
+              <button
+                className="bg-red-400 buttom-mascoti disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={form.password.length < 5 || eliminar !== "eliminar"}
+              >
                 Eliminar cuenta
               </button>
             </div>
-          </div>
+          </form>
         </AccordionContent>
       </AccordionItem>
     </Accordion>

@@ -1,5 +1,4 @@
 import { AlertTriangle } from "lucide-react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAppDispatch } from "../../app/hooks";
 import { disableError } from "../../features/auth/authSlice";
