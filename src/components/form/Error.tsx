@@ -16,10 +16,10 @@ export function Error({
   actionLink?: string;
   error?: string | null;
 }) {
-  const dispathc = useAppDispatch();
+  const dispatch = useAppDispatch();
 
   const errorHandler = () => {
-    dispathc(disableError());
+    dispatch(disableError());
   };
 
   return (
