@@ -21,17 +21,9 @@ export function SidebarAccordion() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (!form.password || !form.newPassword || !form.rePassword) {
-                alert("Todos los campos son obligatorios.");
-                return;
-              }
-              if (form.newPassword !== form.rePassword) {
-                alert("Las nuevas contraseñas no coinciden.");
-                return;
-              }
               changePasswordHandler();
             }}
-            className="px-6 bg-gray-100 rounded-lg pt-2 pb-4"
+            className="px-6 border rounded-lg pt-2 pb-4"
           >
             <div className="formDiv">
               <label
@@ -79,7 +71,11 @@ export function SidebarAccordion() {
                 Confirma tu nueva Contraseña
               </label>
               <input
-                className="bg-white"
+                className={
+                  form.newPassword !== form.rePassword
+                    ? "focus:bg-red-100 bg-white"
+                    : "focus:bg-green-100 bg-white"
+                }
                 type="password"
                 name="rePassword"
                 id="rePassword"
@@ -88,12 +84,22 @@ export function SidebarAccordion() {
                   setForm({ ...form, rePassword: e.target.value });
                 }}
               />
+              {form.rePassword && form.newPassword !== form.rePassword && (
+                <p className="text-red-500 text-xs mt-1">
+                  Las contraseñas no coinciden.
+                </p>
+              )}
             </div>
 
             <div className="formDiv">
               <button
+                disabled={
+                  form.newPassword !== form.rePassword ||
+                  form.newPassword.length < 5 ||
+                  form.password.length < 5
+                }
                 type="submit"
-                className="bg-gradient-mascoti buttom-mascoti"
+                className="bg-gradient-mascoti buttom-mascoti disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Confirmar
               </button>
