@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { Success } from "../components/form/Success";
 import { ErrorVerify } from "../components/form/ErrorVerify";
 import { Loader } from "../components/form/Loader";
+
 function VerifyEmail() {
   let navigate = useNavigate();
   const location = useLocation();

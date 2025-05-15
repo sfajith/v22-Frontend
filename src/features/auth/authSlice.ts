@@ -33,6 +33,12 @@ const authSlice = createSlice({
     disableSuccess(state) {
       state.success = null;
     },
+    globalLoading(state) {
+      state.loading = true;
+    },
+    disableLoading(state) {
+      state.loading = false;
+    },
     loginStart(state) {
       state.loading = true;
       state.error = null;
@@ -124,5 +130,7 @@ export const {
   loadLocalCollection,
   globalSuccess,
   disableSuccess,
+  globalLoading,
+  disableLoading,
 } = authSlice.actions;
 export default authSlice.reducer;

@@ -4,6 +4,8 @@ import {
   globalError,
   disableError,
   globalSuccess,
+  globalLoading,
+  disableLoading,
 } from "../features/auth/authSlice";
 import { useAppDispatch } from "../app/hooks";
 
@@ -17,10 +19,13 @@ function ReSendConfirmation() {
       email,
     };
     try {
+      dispatch(globalLoading());
       const response = await resendVerification(payload);
       if (response.success) {
-        dispatch(globalSuccess(response.success));
+        console.log(response.success);
+        dispatch(disableLoading());
         setGood(true);
+        dispatch(globalSuccess(response.success));
       }
     } catch (error) {
       dispatch(

@@ -2,6 +2,7 @@ import { CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { disableSuccess } from "../../features/auth/authSlice";
 import { useAppDispatch } from "../../app/hooks";
+import { useEffect } from "react";
 
 export function Success({
   title = "¡Éxito!",
@@ -14,6 +15,11 @@ export function Success({
   actionText?: string;
   actionLink?: string;
 }) {
+  useEffect(() => {
+    setTimeout(() => {
+      succesHandler();
+    }, 2000);
+  }, []);
   const dispatch = useAppDispatch();
   const succesHandler = () => {
     dispatch(disableSuccess());

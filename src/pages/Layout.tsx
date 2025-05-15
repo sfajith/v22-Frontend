@@ -5,15 +5,11 @@ import FormControl from "../components/form/FormControl";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { checkToken } from "../features/auth/authService";
 import { loginSuccess } from "../features/auth/authSlice";
-import {
-  Menubar,
-  MenubarContent,
-  MenubarMenu,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
+import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
 import { AppSidebar } from "@/components/myAccount/App-sidebar";
 import { Error } from "@/components/form/Error";
 import { Success } from "@/components/form/Success";
+import { Loader } from "@/components/form/Loader";
 
 function Layout() {
   const dispatch = useAppDispatch();
@@ -43,6 +39,13 @@ function Layout() {
       {auth.success && (
         <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black/40">
           <Success success={auth.success} />
+        </div>
+      )}
+      {auth.loading && (
+        <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black/40 pointer-events-auto">
+          <div className="pointer-events-auto">
+            <Loader />
+          </div>
         </div>
       )}
       <header>
