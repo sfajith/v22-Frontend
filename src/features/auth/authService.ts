@@ -253,3 +253,32 @@ export async function verifyAccount(payload: VerifyPayload) {
 }
 
 //reenvio de verificacion email
+type ResendPayload = {
+  email: string;
+};
+
+type resendSuccess = {
+  success: string;
+};
+
+type resendError = {
+  error: string;
+};
+export async function resendVerification(payload: ResendPayload) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/resend-verification`,
+    {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data: resendSuccess | resendError = await response.json();
+  if (!response.ok) {
+    const err = data as resendError;
+    throw new Error(err.error || "No se pudo reenviar el enlace");
+  }
+  return data as resendSuccess;
+}
