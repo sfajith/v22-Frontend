@@ -220,3 +220,34 @@ export async function deleteAccount(payload: deleteType) {
   }
   return data as deleteUserResponse;
 }
+
+//verificacion de la cuenta
+type VerifyPayload = {
+  token: string | null;
+};
+
+type VerifiySuccess = {
+  success: string;
+};
+
+type VerifyError = {
+  error: string;
+};
+export async function verifyAccount(payload: VerifyPayload) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/verify-email?token=${payload.token}`,
+    {
+      method: "GET",
+      headers: {
+        "content-Type": "application/json",
+      },
+    }
+  );
+  const data: VerifiySuccess | VerifyError = await response.json();
+
+  if (!response.ok) {
+    const err = data as deleteError;
+    throw new Error(err.error || "Falló la verificación");
+  }
+  return data as VerifiySuccess;
+}

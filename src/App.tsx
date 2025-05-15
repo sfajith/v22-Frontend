@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import MyAccount from "./pages/MyAccount";
 import NotFound from "./pages/NotFound";
 import Layout from "./pages/Layout";
+import VerifyEmail from "./pages/VerifyEmail";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -15,6 +16,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="/cuenta" element={<MyAccount />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
