@@ -6,6 +6,7 @@ import Layout from "./pages/Layout";
 import VerifyEmail from "./pages/VerifyEmail";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import ReSendConfirmation from "@/pages/ReSendConfirmation";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="/cuenta" element={<MyAccount />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/resend-email" element={<ReSendConfirmation />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 export function ErrorVerify({
   title = "Error",
@@ -16,9 +17,10 @@ export function ErrorVerify({
   error?: string | null;
 }) {
   const [enviado, setEnviado] = useState<boolean>();
+  const navigate = useNavigate();
 
   const errorHandler = () => {
-    setEnviado(true);
+    navigate("/resend-email");
   };
 
   return (

@@ -251,3 +251,5 @@ export async function verifyAccount(payload: VerifyPayload) {
   }
   return data as VerifiySuccess;
 }
+
+//reenvio de verificacion email
