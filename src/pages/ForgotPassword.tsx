@@ -28,6 +28,7 @@ function ForgotPassword() {
         dispatch(globalSuccess(response.success));
       }
     } catch (error) {
+      dispatch(disableLoading());
       dispatch(
         globalError(
           error instanceof Error

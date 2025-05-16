@@ -5,6 +5,7 @@ import NotFound from "./pages/NotFound";
 import Layout from "./pages/Layout";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ReSendConfirmation from "@/pages/ReSendConfirmation";
@@ -21,6 +22,7 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/resend-email" element={<ReSendConfirmation />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

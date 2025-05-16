@@ -314,3 +314,34 @@ export async function forgotPassword(payload: ForgotPayload) {
   }
   return data as ForgotSuccess;
 }
+
+//establecer nueva contraseña
+type RestorePayload = {
+  token: string | null;
+  password: string;
+};
+type RestoreSuccess = {
+  success: string;
+};
+type RestoreError = {
+  error: string;
+};
+
+export async function restorePassword(payload: RestorePayload) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/recover-password?token=${payload.token}`,
+    {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: payload.password }),
+    }
+  );
+  const data: RestoreSuccess | RestoreError = await response.json();
+  if (!response.ok) {
+    const err = data as RestoreError;
+    throw new Error(err.error || "No se pudo establecer la nueva contraseña");
+  }
+  return data as RestoreSuccess;
+}

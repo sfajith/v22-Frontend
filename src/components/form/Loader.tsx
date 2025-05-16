@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function Loader({
-  message = "Verificando tu cuenta...",
+  message = "Procesando solicitud...",
 }: {
   message?: string;
 }) {

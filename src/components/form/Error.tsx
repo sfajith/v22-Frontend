@@ -6,7 +6,7 @@ import { disableError } from "../../features/auth/authSlice";
 export function Error({
   title = "Error",
   message = "Algo salió mal.",
-  actionText = "Intentar de nuevo",
+  actionText = "Cerrar",
   actionLink = "/",
   error,
 }: {
