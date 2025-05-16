@@ -282,3 +282,35 @@ export async function resendVerification(payload: ResendPayload) {
   }
   return data as resendSuccess;
 }
+
+//Envio de enlace de recuperacion de contraseña
+type ForgotPayload = {
+  email: string;
+};
+
+type ForgotSuccess = {
+  success: string;
+};
+
+type ForgotError = {
+  error: string;
+};
+
+export async function forgotPassword(payload: ForgotPayload) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/forgot-password`,
+    {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data: ForgotSuccess | ForgotError = await response.json();
+  if (!response.ok) {
+    const err = data as ForgotError;
+    throw new Error(err.error || "No se pudo recuperar la contraseña");
+  }
+  return data as ForgotSuccess;
+}
