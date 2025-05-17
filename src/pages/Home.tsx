@@ -15,7 +15,6 @@ import {
   loadLocalCollection,
   globalError,
 } from "../features/auth/authSlice";
-import { Error } from "../components/form/Error";
 
 function Home() {
   // `userCode` es opcional y se usa solo cuando el usuario quiere personalizar la URL

@@ -17,6 +17,8 @@ type LinklistProps = {
 // Componente que muestra la lista de enlaces del usuario no registrado
 // Si hay enlaces, los renderiza en una grilla animada. Si no hay enlaces, muestra un mensaje motivador.
 export function LinkList({ deleteLinkHandler, collection }: LinklistProps) {
+  const reversedUserLinks = collection.userLinks.slice().reverse();
+
   return (
     <div className="flex flex-col justify-center">
       {collection.userLinks.length > 0 ? (
@@ -28,7 +30,7 @@ export function LinkList({ deleteLinkHandler, collection }: LinklistProps) {
             <motion.ul className="grid grid-cols-2 justify-items-center gap-3">
               <AnimatePresence>
                 {/* Mapeo de enlaces del usuario con animación al montar/desmontar */}
-                {collection.userLinks.map((link, index) => (
+                {reversedUserLinks.map((link, index) => (
                   <motion.li
                     key={link.idLink}
                     initial={{ opacity: 0, y: 20 }}

@@ -25,3 +25,33 @@ export async function newLink(payload: LinkPayload) {
   }
   return data as LinkType;
 }
+
+//validacion en tiempo real del usercode
+
+type livePayload = {
+  usercode: string;
+};
+
+type livePayloadSuccess = {
+  success: string;
+};
+
+type livePayloadError = {
+  error: string;
+};
+
+export async function liveCheckCode(payload: livePayload) {
+  const response = await fetch("http://localhost:3000/live-code", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ userCode: payload.usercode }),
+  });
+  const data: livePayloadSuccess | livePayloadError = await response.json();
+  if (!response.ok) {
+    const err = data as livePayloadError;
+    throw new Error(err.error || "Error al acortar enlace");
+  }
+  return data as livePayloadSuccess;
+}

@@ -83,7 +83,7 @@ function CardList({
             <div className="text-lg font-medium text-muted-foreground font-semibold">
               <h3>Aún no tienes enlaces para mostrar</h3>
               <p className="text-lg font-medium text-muted-foreground font-semibold">
-                ¡Crea tu primer enlace!
+                ¡Acorta tu primer enlace!
               </p>
             </div>
           )}

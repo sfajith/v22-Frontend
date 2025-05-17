@@ -14,6 +14,7 @@ import { loginSuccess } from "../../features/auth/authSlice";
 import { loginUser } from "../../features/auth/authService";
 import { Loader2 } from "lucide-react"; // Ícono de carga de Lucide
 import { useNavigate } from "react-router-dom";
+import { useUserCollection } from "../../app/hooks/useUserCollection";
 
 export default function LoginDialog() {
   const dispatch = useAppDispatch();
@@ -25,6 +26,8 @@ export default function LoginDialog() {
   const isFormValid = form.email !== "" && form.password !== "";
   const navigate = useNavigate();
 
+  const { handlerLoadCollection } = useUserCollection();
+
   const handleLogin = async () => {
     setIsLoading(true);
     setTimeout(async () => {
@@ -34,6 +37,7 @@ export default function LoginDialog() {
           password: form.password,
         });
         dispatch(loginSuccess(data));
+        handlerLoadCollection();
         console.log(data);
         localStorage.setItem("token", data.token);
         setErrorMessage(null);
