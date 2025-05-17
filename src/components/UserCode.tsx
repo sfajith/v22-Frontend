@@ -43,19 +43,31 @@ function UserCode({ form, setForm }: Props) {
   }, [form.userCode]);
 
   const liveCheckHandler = async () => {
-    console.log("llamando livecheckhanlder");
     setSuccess(null);
     setError(null);
-    try {
-      if (form.userCode && form.userCode.length > 0) {
-        const response = await liveCheckCode({ usercode: form.userCode });
-        if (response.success) {
-          setSuccess(response.success);
-        }
+    const codeRegex = /^[a-zA-Z0-9_-]+$/;
+    if (form.userCode) {
+      const trimmedCode = form.userCode.trim();
+      if (!codeRegex.test(trimmedCode)) {
+        setError("Solo se permiten letras, números, guiones y guiones bajos.");
+        return;
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "No disponible";
-      setError(message);
+      if (trimmedCode.length > 12) {
+        setError("Tu código es muy largo. Máximo 12 caracteres.");
+        return;
+      }
+      try {
+        if (form.userCode && form.userCode.length > 0) {
+          const response = await liveCheckCode({ usercode: form.userCode });
+          if (response.success) {
+            setSuccess(response.success);
+          }
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "No disponible";
+        setError(message);
+      }
     }
   };
 
@@ -71,7 +83,7 @@ function UserCode({ form, setForm }: Props) {
       <Input
         type="text"
         value={form.userCode}
-        className="w-1/4 rounded-full"
+        className="w-1/4 rounded-full mb-1"
         placeholder="Tu codigo..."
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           setForm({ ...form, userCode: e.target.value });
