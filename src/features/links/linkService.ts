@@ -51,7 +51,7 @@ export async function liveCheckCode(payload: livePayload) {
   const data: livePayloadSuccess | livePayloadError = await response.json();
   if (!response.ok) {
     const err = data as livePayloadError;
-    throw new Error(err.error || "Error al acortar enlace");
+    throw new Error(err.error || "Codigo no disponible");
   }
   return data as livePayloadSuccess;
 }

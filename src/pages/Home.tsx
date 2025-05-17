@@ -9,6 +9,7 @@ import { LinkList } from "../components/Home/LinkList";
 import CardList from "../components/myAccount/CardList";
 import { FiCopy } from "react-icons/fi";
 import { toast } from "sonner";
+import UserCode from "../components/UserCode";
 import { useUserCollection } from "../app/hooks/useUserCollection";
 import {
   addNewLink,
@@ -146,29 +147,17 @@ function Home() {
               setForm({ ...form, originalUrl: e.target.value });
             }}
           />
-
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {custom && (
-              // Campo adicional para personalizar el enlace (si custom está activo)
               <motion.div
-                className="flex mt-4 mx-auto items-center justify-center"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
+                key="usercode"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                <h3 className="text-2xl text-gray-500">
-                  http://localhost:3000/
-                </h3>
-                <Input
-                  type="text"
-                  value={form.userCode}
-                  className="w-1/4 rounded-full"
-                  placeholder="Tu codigo..."
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setForm({ ...form, userCode: e.target.value });
-                  }}
-                />
+                <UserCode form={form} setForm={setForm} />
               </motion.div>
             )}
           </AnimatePresence>

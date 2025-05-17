@@ -30,7 +30,7 @@ export function LinkList({ deleteLinkHandler, collection }: LinklistProps) {
             <motion.ul className="grid grid-cols-2 justify-items-center gap-3">
               <AnimatePresence>
                 {/* Mapeo de enlaces del usuario con animación al montar/desmontar */}
-                {reversedUserLinks.map((link, index) => (
+                {collection.userLinks.map((link, index) => (
                   <motion.li
                     key={link.idLink}
                     initial={{ opacity: 0, y: 20 }}
