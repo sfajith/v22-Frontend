@@ -77,8 +77,16 @@ function CardList({
   return (
     <div className="flex justify-center">
       {/* Contenedor scrollable con scrollbar personalizada */}
-      <div className="h-[300px] w-[660px] rounded-md border p-4 overflow-auto overflow-y-scroll custom-scrollbar">
+      <div className="h-[300px] w-[660px] rounded-md border p-4 overflow-auto overflow-y-scroll custom-scrollbar text-center">
         <AnimatePresence>
+          {collection.userLinks.length === 0 && (
+            <div className="text-lg font-medium text-muted-foreground font-semibold">
+              <h3>Aún no tienes enlaces para mostrar</h3>
+              <p className="text-lg font-medium text-muted-foreground font-semibold">
+                ¡Crea tu primer enlace!
+              </p>
+            </div>
+          )}
           <motion.ul className="grid grid-cols-2 justify-items-center gap-3">
             {/**Animación al renderizar cada tarjeta de enlace */}
             {collection.userLinks.map((item, index) => (
