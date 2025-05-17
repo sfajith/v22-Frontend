@@ -13,7 +13,7 @@ import { useAppDispatch } from "../../app/hooks";
 import { loginSuccess } from "../../features/auth/authSlice";
 import { loginUser } from "../../features/auth/authService";
 import { Loader2 } from "lucide-react"; // Ícono de carga de Lucide
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginDialog() {
   const dispatch = useAppDispatch();
@@ -21,7 +21,9 @@ export default function LoginDialog() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
   const isFormValid = form.email !== "" && form.password !== "";
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     setIsLoading(true);
@@ -35,6 +37,7 @@ export default function LoginDialog() {
         console.log(data);
         localStorage.setItem("token", data.token);
         setErrorMessage(null);
+        setOpen(false);
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Error al iniciar sesión";
@@ -44,9 +47,13 @@ export default function LoginDialog() {
       }
     }, 1000);
   };
+  const handleForgotPassword = () => {
+    setOpen(false); // <-- Cierra el diálogo
+    navigate("/forgot-password"); // <-- Redirige
+  };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button className="bg-transparent hover:bg-white hover:text-black py-1 px-3 rounded-sm cursor-pointer">
           Ingresar
@@ -83,12 +90,13 @@ export default function LoginDialog() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
           </div>
-          <Link
-            className="text-xs font-medium text-muted-foreground"
-            to={"/forgot-password"}
+
+          <button
+            onClick={handleForgotPassword}
+            className="text-xs font-medium text-muted-foreground underline cursor-pointer"
           >
             Olvidé mi contraseña
-          </Link>
+          </button>
           {errorMessage && (
             <p className="text-sm text-red-500 font-medium">{errorMessage}</p>
           )}
