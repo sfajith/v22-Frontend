@@ -81,7 +81,11 @@ function CardLink({
       </div>
       {/* Muestra el enlace original completo en un tooltip */}
       <Tooltipmanager
-        children2={<p className="max-w-[200px]">{originalUrl}</p>}
+        children2={
+          <p className="max-w-[200px] max-w-[200px] break-words">
+            {originalUrl}
+          </p>
+        }
         children={
           <p className="text-[14px] text-gray-500 font-light w-70 truncate">
             {originalUrl}
