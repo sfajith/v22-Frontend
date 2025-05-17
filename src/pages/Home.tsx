@@ -41,7 +41,6 @@ function Home() {
   // Al montar el componente, cargamos los enlaces desde el backend si el usuario está autenticado,
   // o desde el localStorage si es un usuario no registrado
   useEffect(() => {
-    handlerLoadCollection();
     if (!isAuthenticated) {
       dispatch(loadLocalCollection());
     }

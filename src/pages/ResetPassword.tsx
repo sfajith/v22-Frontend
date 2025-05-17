@@ -38,7 +38,7 @@ function ResetPassword() {
         console.log(response.success);
         dispatch(disableLoading());
         dispatch(globalSuccess(response.success));
-        navigate("/login");
+        navigate("/");
       }
     } catch (error) {
       dispatch(disableLoading());

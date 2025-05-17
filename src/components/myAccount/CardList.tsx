@@ -29,10 +29,13 @@ function CardList({
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            handlerLoadCollection();
-          }, 500);
+
+        const hasLoadedAll =
+          collection.totalCount !== null &&
+          collection.userLinks.length >= collection.totalCount;
+
+        if (entry.isIntersecting && !collection.isLoading && !hasLoadedAll) {
+          handlerLoadCollection();
         }
       },
       {
@@ -53,7 +56,11 @@ function CardList({
       }
       observer.disconnect();
     };
-  }, [handlerLoadCollection]);
+  }, [
+    collection.isLoading,
+    collection.userLinks.length,
+    collection.totalCount,
+  ]);
 
   // Variantes para la animación de aparición de los ítems con framer-motion
   const itemVariants = {

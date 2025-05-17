@@ -22,8 +22,9 @@ export function useUserCollection() {
   useEffect(() => {
     if (isAuthenticated && auth.user?.username) {
       handlerLoadCollection();
+      console.log("Llamando handlerLoadCollection()");
     }
-  }, [auth.user?.username, isAuthenticated]);
+  }, [isAuthenticated, auth.user?.username]);
 
   // Función para cargar los enlaces del usuario
   const handlerLoadCollection = async () => {

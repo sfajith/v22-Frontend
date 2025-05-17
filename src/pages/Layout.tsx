@@ -25,6 +25,7 @@ function Layout() {
       }
     };
     getData();
+    console.log("llamando auth");
   }, []);
 
   return (

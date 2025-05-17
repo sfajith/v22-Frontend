@@ -17,6 +17,7 @@ function VerifyEmail() {
 
   useEffect(() => {
     verifiHandler();
+    console.log("llamada desde verify");
   }, [token]);
 
   const verifiHandler = async () => {

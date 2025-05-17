@@ -1,113 +1,158 @@
 import { useState } from "react";
-import { registerUser } from "../../features/auth/authService";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 import { useAppDispatch } from "../../app/hooks";
+import { registerUser } from "../../features/auth/authService";
 import { globalError } from "../../features/auth/authSlice";
 
-type UiProps = {
-  ui: {
-    isRegistered: boolean;
-    isLoading: boolean;
-    error: string | null;
-  };
-};
-
-function RegisterForm({ ui }: UiProps) {
-  const [form, setForm] = useState<{
-    username: string;
-    email: string;
-    password: string;
-    repassword: string;
-  }>({ username: "", email: "", password: "", repassword: "" });
-
+export default function RegisterDialog() {
   const dispatch = useAppDispatch();
 
-  //manejador de registro
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+    repassword: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const passwordsMatch = form.password === form.repassword;
+  const isFormValid =
+    form.username && form.email && form.password && passwordsMatch;
+
   const handleRegister = async () => {
+    if (!passwordsMatch) return;
+    setErrorMessage(null);
+    setIsLoading(true);
     try {
       const data = await registerUser({
         username: form.username,
         email: form.email,
         password: form.password,
       });
+
       if (data.success) {
-        return console.log("hola");
+        setSuccessMessage(
+          "¡Cuenta creada exitosamente! Revisa tu correo para activarla."
+        );
+        setForm({ username: "", email: "", password: "", repassword: "" });
       }
     } catch (error) {
-      dispatch(
-        globalError(
-          error instanceof Error ? error.message : "Error en el registro"
-        )
-      );
+      const message =
+        error instanceof Error ? error.message : "Error en el registro";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  //barra de progreso
-
   return (
-    <>
-      <div>
-        <div className="formDiv">
-          <label htmlFor="username">Nombre de usuario</label>
-          <input
-            type="text"
-            name="username"
-            id="username"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setForm({ ...form, username: e.target.value });
-            }}
-          />
+    <Dialog>
+      <DialogTrigger asChild>
+        <button className="bg-transparent hover:bg-white hover:text-black py-1 px-3 rounded-sm cursor-pointer">
+          Registrarse
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>Crear cuenta</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium">
+              Nombre de usuario
+            </label>
+            <Input
+              id="username"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              placeholder="ej: sherjan.dev"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium">
+              Correo
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="ejemplo@correo.com"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium">
+              Contraseña
+            </label>
+            <Input
+              id="password"
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              placeholder="********"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="repassword" className="block text-sm font-medium">
+              Confirmar contraseña
+            </label>
+            <Input
+              id="repassword"
+              type="password"
+              value={form.repassword}
+              onChange={(e) => setForm({ ...form, repassword: e.target.value })}
+              placeholder="********"
+            />
+          </div>
+
+          {!passwordsMatch && form.repassword && (
+            <p className="text-sm text-red-500 font-medium">
+              Las contraseñas no coinciden
+            </p>
+          )}
+          {successMessage && (
+            <p className="text-sm text-green-600 font-medium">
+              {successMessage}
+            </p>
+          )}
+          {errorMessage && (
+            <p className="text-sm text-red-500 font-medium">{errorMessage}</p>
+          )}
         </div>
-        <div className="formDiv">
-          <label htmlFor="email">Correo</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setForm({ ...form, email: e.target.value });
-            }}
-          />
-        </div>
-        <div className="formDiv">
-          <label htmlFor="password">Contraseña</label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setForm({ ...form, password: e.target.value });
-            }}
-          />
-        </div>
-        <div className="formDiv">
-          <label htmlFor="repassword">Confirmar contraseña</label>
-          <input
-            className={
-              form.password !== form.repassword
-                ? "focus:bg-red-100"
-                : "focus:bg-green-100"
-            }
-            type="password"
-            name="repassword"
-            id="repassword"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setForm({ ...form, repassword: e.target.value });
-            }}
-          />
-        </div>
-        <div className="formDiv">
-          <button
-            className="bg-gradient-mascoti buttom-mascoti"
-            onClick={() => {
-              handleRegister();
-            }}
+
+        <DialogFooter>
+          <Button
+            disabled={!isFormValid || isLoading}
+            onClick={handleRegister}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-mascoti rounded-full cursor-pointer"
           >
-            Crear cuenta
-          </button>
-        </div>
-      </div>
-    </>
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin w-4 h-4" />
+                Registrando...
+              </>
+            ) : (
+              "Crear cuenta"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
-
-export default RegisterForm;

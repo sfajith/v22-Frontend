@@ -117,7 +117,7 @@ export async function getUserCollection(
   );
 
   if (!response.ok) {
-    throw new Error("Token invalido");
+    throw new Error("Token invalidoxx");
   }
 
   const data: CollectionResponse = await response.json();
