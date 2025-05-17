@@ -18,14 +18,16 @@ function Layout() {
 
   //manejador de recarga de pagina
   useEffect(() => {
-    const getData = async () => {
-      const data = await checkToken(localToken);
-      if (data.ok === true) {
-        dispatch(loginSuccess({ localToken, user: data.user }));
-      }
-    };
-    getData();
-    console.log("llamando auth");
+    if (localToken) {
+      const getData = async () => {
+        const data = await checkToken(localToken);
+        if (data.ok === true) {
+          dispatch(loginSuccess({ localToken, user: data.user }));
+        }
+      };
+      getData();
+      console.log("llamando auth");
+    }
   }, []);
 
   return (
