@@ -31,8 +31,8 @@ function UserCode({ form, setForm }: Props) {
 
   useEffect(() => {
     if (!form.userCode) {
-      setSuccess(null);
-      setError(null);
+      if (success !== null) setSuccess(null);
+      if (error !== null) setError(null);
       return;
     }
     const handler = setTimeout(() => {
@@ -57,7 +57,7 @@ function UserCode({ form, setForm }: Props) {
         return;
       }
       try {
-        if (form.userCode && form.userCode.length > 0) {
+        if (form.userCode.length > 0) {
           const response = await liveCheckCode({ usercode: form.userCode });
           if (response.success) {
             setSuccess(response.success);

@@ -345,3 +345,63 @@ export async function restorePassword(payload: RestorePayload) {
   }
   return data as RestoreSuccess;
 }
+
+//llama al backend para validar campo username
+type PayloadUsernameValidation = {
+  username: string;
+};
+type usernameValidationSuccess = {
+  success: string;
+};
+type usernameValidationError = {
+  error: string;
+};
+export async function usernameValidation(payload: PayloadUsernameValidation) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/username-validation`,
+    {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data: usernameValidationSuccess | usernameValidationError =
+    await response.json();
+  if (!response.ok) {
+    const err = data as usernameValidationError;
+    throw new Error(err.error || "No disponible");
+  }
+  return data as usernameValidationSuccess;
+}
+
+//llama al backend para validar campo username
+type PayloadEmailValidation = {
+  email: string;
+};
+type emailValidationSuccess = {
+  success: string;
+};
+type emailValidationError = {
+  error: string;
+};
+export async function emailValidation(payload: PayloadEmailValidation) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/email-validation`,
+    {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data: emailValidationSuccess | emailValidationError =
+    await response.json();
+  if (!response.ok) {
+    const err = data as emailValidationError;
+    throw new Error(err.error || "No disponible");
+  }
+  return data as emailValidationSuccess;
+}

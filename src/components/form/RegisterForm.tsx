@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTrigger,
@@ -10,13 +10,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { useAppDispatch } from "../../app/hooks";
 import { registerUser } from "../../features/auth/authService";
-import { globalError } from "../../features/auth/authSlice";
+import {
+  usernameValidation,
+  emailValidation,
+} from "../../features/auth/authService";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function RegisterDialog() {
-  const dispatch = useAppDispatch();
-
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -26,6 +34,10 @@ export default function RegisterDialog() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorName, setErrorName] = useState<string | null>(null);
+  const [errorEmail, setErrorEmail] = useState<string | null>(null);
+  const [successName, setSuccessName] = useState<string | null>(null);
+  const [successEmail, setSuccessEmail] = useState<string | null>(null);
 
   const passwordsMatch = form.password === form.repassword;
   const isFormValid =
@@ -57,6 +69,86 @@ export default function RegisterDialog() {
     }
   };
 
+  const debounceDelay = 700;
+
+  //llamada de usernameValidationHandler
+  useEffect(() => {
+    if (form.username.length === 0) {
+      if (successName !== null) setSuccessName(null);
+      if (errorName !== null) setErrorName(null);
+      return;
+    }
+
+    const handlerUsername = setTimeout(() => {
+      usernameValidationHandler();
+    }, debounceDelay);
+
+    return () => clearTimeout(handlerUsername);
+  }, [form.username]);
+
+  //llamada de emailValidationHandler
+  useEffect(() => {
+    if (form.email.length === 0) {
+      if (successEmail !== null) setSuccessEmail(null);
+      if (errorEmail !== null) setErrorEmail(null);
+      return;
+    }
+
+    const handler = setTimeout(() => {
+      emailValidationHandler();
+    }, debounceDelay);
+
+    return () => clearTimeout(handler);
+  }, [form.email]);
+
+  const emailValidationHandler = async () => {
+    setErrorEmail(null);
+    setSuccessEmail(null);
+    if (!form.email) {
+      return;
+    }
+
+    if (form.email.length > 0) {
+      try {
+        const response = await emailValidation({
+          email: form.email,
+        });
+        if (response.success) {
+          setSuccessEmail(response.success);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "No disponible";
+        setSuccessEmail(null);
+        setErrorEmail(message);
+      }
+    }
+  };
+
+  const usernameValidationHandler = async () => {
+    setErrorName(null);
+    setSuccessName(null);
+    if (!form.username) {
+      return;
+    }
+
+    if (form.username.length > 0) {
+      try {
+        const response = await usernameValidation({
+          username: form.username,
+        });
+        if (response.success) {
+          setSuccessName(response.success);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "No disponible";
+        setSuccessName(null);
+        setErrorName(message);
+      }
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -74,25 +166,127 @@ export default function RegisterDialog() {
             <label htmlFor="username" className="block text-sm font-medium">
               Nombre de usuario
             </label>
-            <Input
-              id="username"
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-              placeholder="ej: sherjan.dev"
-            />
+            <div className="flex items-center gap-1">
+              <Input
+                id="username"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                placeholder="ej: sherjan.dev"
+              />
+              <div className="w-5 h-5 relative">
+                <AnimatePresence mode="wait">
+                  {successName && (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-0 left-0"
+                    >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <CheckCircle className="text-green-500 w-5 h-5 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Nombre de usuario disponible</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </motion.div>
+                  )}
+
+                  {errorName && (
+                    <motion.div
+                      key="error"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-0 left-0"
+                    >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <AlertCircle className="text-red-500 w-5 h-5 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-[150px] break-words">
+                              {errorName}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium">
               Correo
             </label>
-            <Input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="ejemplo@correo.com"
-            />
+            <div className="flex items-center gap-1">
+              <Input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="ejemplo@correo.com"
+              />
+              <div className="w-5 h-5 relative">
+                <AnimatePresence mode="wait">
+                  {successEmail && (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-0 left-0"
+                    >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <CheckCircle className="text-green-500 w-5 h-5 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Nombre de usuario disponible</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </motion.div>
+                  )}
+
+                  {errorEmail && (
+                    <motion.div
+                      key="error"
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-0 left-0"
+                    >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <AlertCircle className="text-red-500 w-5 h-5 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-[150px] break-words">
+                              {errorEmail}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
 
           <div>
