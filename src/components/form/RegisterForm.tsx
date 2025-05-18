@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import zxcvbn from "zxcvbn";
 import {
   Dialog,
   DialogTrigger,
@@ -42,6 +43,45 @@ export default function RegisterDialog() {
   const passwordsMatch = form.password === form.repassword;
   const isFormValid =
     form.username && form.email && form.password && passwordsMatch;
+
+  // Evaluación de la fuerza de la contraseña
+  const result = zxcvbn(form.password);
+
+  // Función para obtener texto según la puntuación
+  const passwordStrengthText = () => {
+    switch (result.score) {
+      case 0:
+        return "Muy débil";
+      case 1:
+        return "Débil";
+      case 2:
+        return "Regular";
+      case 3:
+        return "Fuerte";
+      case 4:
+        return "Muy fuerte";
+      default:
+        return "";
+    }
+  };
+
+  // Color según la fuerza
+  const passwordStrengthColor = () => {
+    switch (result.score) {
+      case 0:
+        return "bg-red-600";
+      case 1:
+        return "bg-red-400";
+      case 2:
+        return "bg-yellow-400";
+      case 3:
+        return "bg-green-400";
+      case 4:
+        return "bg-green-600";
+      default:
+        return "bg-transparent";
+    }
+  };
 
   const handleRegister = async () => {
     if (!passwordsMatch) return;
@@ -254,7 +294,7 @@ export default function RegisterDialog() {
                             <CheckCircle className="text-green-500 w-5 h-5 cursor-help" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Nombre de usuario disponible</p>
+                            <p>Correo disponible</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -300,6 +340,25 @@ export default function RegisterDialog() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder="********"
             />
+            <AnimatePresence mode="wait">
+              {form.password && (
+                <motion.div
+                  key="password-strength"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-1 flex items-center gap-2 overflow-hidden"
+                >
+                  <div
+                    className={`h-2 flex-1 rounded-full ${passwordStrengthColor()}`}
+                  />
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {passwordStrengthText()}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div>
@@ -314,12 +373,20 @@ export default function RegisterDialog() {
               placeholder="********"
             />
           </div>
-
-          {!passwordsMatch && form.repassword && (
-            <p className="text-sm text-red-500 font-medium">
-              Las contraseñas no coinciden
-            </p>
-          )}
+          <AnimatePresence mode="wait">
+            {!passwordsMatch && form.repassword && (
+              <motion.p
+                key="password-error"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-sm text-red-500 font-medium overflow-hidden"
+              >
+                Las contraseñas no coinciden
+              </motion.p>
+            )}
+          </AnimatePresence>
           {successMessage && (
             <p className="text-sm text-green-600 font-medium">
               {successMessage}
@@ -338,8 +405,7 @@ export default function RegisterDialog() {
           >
             {isLoading ? (
               <>
-                <Loader2 className="animate-spin w-4 h-4" />
-                Registrando...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...
               </>
             ) : (
               "Crear cuenta"
