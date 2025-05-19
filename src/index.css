@@ -70,6 +70,10 @@ header {
       rgba(97, 75, 175, 1) 100%
     );
   }
+  .transition-height {
+    transition: height 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+  }
 
   .mi-cuenta {
     background: #f4f4f4;

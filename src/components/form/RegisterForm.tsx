@@ -1,5 +1,10 @@
-import { useEffect, useState } from "react";
-import zxcvbn from "zxcvbn";
+import { registerUser } from "../../features/auth/authService";
+import {
+  usernameValidation,
+  emailValidation,
+} from "../../features/auth/authService";
+import { motion, AnimatePresence } from "framer-motion";
+import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogTrigger,
@@ -8,174 +13,53 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
-import { registerUser } from "../../features/auth/authService";
+import { Input } from "../ui/input";
+import { useEffect, useState } from "react";
 import {
-  usernameValidation,
-  emailValidation,
-} from "../../features/auth/authService";
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, AlertCircle } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Loader2,
+  MailCheck,
+  MailX,
+  UserRoundCheck,
+  UserRoundX,
+} from "lucide-react";
+
+interface FormInputs {
+  username: string;
+  email: string;
+  password: string;
+  rePassword: string;
+}
 
 export default function RegisterDialog() {
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-    repassword: "",
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [errorName, setErrorName] = useState<string | null>(null);
-  const [errorEmail, setErrorEmail] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormInputs>({ mode: "onChange" });
+
+  const password = watch("password");
+  const username = watch("username");
+  const email = watch("email");
+
+  //estados para el manejo de la validacion de username
   const [successName, setSuccessName] = useState<string | null>(null);
-  const [successEmail, setSuccessEmail] = useState<string | null>(null);
+  const [errorName, setErrorName] = useState<string | null>(null);
+  const [validatingName, setValidatingName] = useState<boolean>(false);
 
-  const passwordsMatch = form.password === form.repassword;
-  const isFormValid =
-    form.username && form.email && form.password && passwordsMatch;
-
-  // Evaluación de la fuerza de la contraseña
-  const result = zxcvbn(form.password);
-
-  // Función para obtener texto según la puntuación
-  const passwordStrengthText = () => {
-    switch (result.score) {
-      case 0:
-        return "Muy débil";
-      case 1:
-        return "Débil";
-      case 2:
-        return "Regular";
-      case 3:
-        return "Fuerte";
-      case 4:
-        return "Muy fuerte";
-      default:
-        return "";
-    }
-  };
-
-  // Color según la fuerza
-  const passwordStrengthColor = () => {
-    switch (result.score) {
-      case 0:
-        return "bg-red-600";
-      case 1:
-        return "bg-red-400";
-      case 2:
-        return "bg-yellow-400";
-      case 3:
-        return "bg-green-400";
-      case 4:
-        return "bg-green-600";
-      default:
-        return "bg-transparent";
-    }
-  };
-
-  const handleRegister = async () => {
-    if (!passwordsMatch) return;
-    setErrorMessage(null);
-    setIsLoading(true);
-    try {
-      const data = await registerUser({
-        username: form.username,
-        email: form.email,
-        password: form.password,
-      });
-
-      if (data.success) {
-        setSuccessMessage(
-          "¡Cuenta creada exitosamente! Revisa tu correo para activarla."
-        );
-        setForm({ username: "", email: "", password: "", repassword: "" });
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Error en el registro";
-      setErrorMessage(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const debounceDelay = 700;
-
-  //llamada de usernameValidationHandler
-  useEffect(() => {
-    if (form.username.length === 0) {
-      if (successName !== null) setSuccessName(null);
-      if (errorName !== null) setErrorName(null);
-      return;
-    }
-
-    const handlerUsername = setTimeout(() => {
-      usernameValidationHandler();
-    }, debounceDelay);
-
-    return () => clearTimeout(handlerUsername);
-  }, [form.username]);
-
-  //llamada de emailValidationHandler
-  useEffect(() => {
-    if (form.email.length === 0) {
-      if (successEmail !== null) setSuccessEmail(null);
-      if (errorEmail !== null) setErrorEmail(null);
-      return;
-    }
-
-    const handler = setTimeout(() => {
-      emailValidationHandler();
-    }, debounceDelay);
-
-    return () => clearTimeout(handler);
-  }, [form.email]);
-
-  const emailValidationHandler = async () => {
-    setErrorEmail(null);
-    setSuccessEmail(null);
-    if (!form.email) {
-      return;
-    }
-
-    if (form.email.length > 0) {
-      try {
-        const response = await emailValidation({
-          email: form.email,
-        });
-        if (response.success) {
-          setSuccessEmail(response.success);
-        }
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "No disponible";
-        setSuccessEmail(null);
-        setErrorEmail(message);
-      }
-    }
-  };
-
+  //llamada al backend para verioficar el username
   const usernameValidationHandler = async () => {
+    setValidatingName(true);
     setErrorName(null);
     setSuccessName(null);
-    if (!form.username) {
+    if (errors.username) {
+      setValidatingName(false);
       return;
     }
-
-    if (form.username.length > 0) {
+    setTimeout(async () => {
       try {
         const response = await usernameValidation({
-          username: form.username,
+          username,
         });
         if (response.success) {
           setSuccessName(response.success);
@@ -185,8 +69,138 @@ export default function RegisterDialog() {
           error instanceof Error ? error.message : "No disponible";
         setSuccessName(null);
         setErrorName(message);
+      } finally {
+        setValidatingName(false);
       }
+    }, 700);
+  };
+
+  //useEffect para manejar la validacion de username
+  useEffect(() => {
+    if (successName !== null) setSuccessName(null);
+    if (errorName !== null) setErrorName(null);
+    if (errors.username || !username) {
+      setSuccessName(null);
+      return;
     }
+
+    const usernameHandler = setTimeout(() => {
+      usernameValidationHandler();
+    }, 700);
+
+    return () => clearTimeout(usernameHandler);
+  }, [username, errors.username]);
+
+  //estados para el manejo de la validacion de email
+  const [successEmail, setSuccessEmail] = useState<string | null>(null);
+  const [errorEmail, setErrorEmail] = useState<string | null>(null);
+  const [validatingEmail, setValidatingEmail] = useState<boolean>(false);
+
+  //llamada al backend para verioficar el email
+  const emailValidationHandler = async () => {
+    setValidatingEmail(true);
+    setErrorEmail(null);
+    setSuccessEmail(null);
+    if (errors.username) {
+      setValidatingName(false);
+      return;
+    }
+    setTimeout(async () => {
+      try {
+        const response = await emailValidation({
+          email,
+        });
+        if (response.success) {
+          setSuccessEmail(response.success);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "No disponible";
+        setSuccessEmail(null);
+        setErrorEmail(message);
+      } finally {
+        setValidatingEmail(false);
+      }
+    }, 700);
+  };
+
+  //useEffect para manejar la validacion de email
+  useEffect(() => {
+    if (successEmail !== null) setSuccessEmail(null);
+    if (errorEmail !== null) setErrorEmail(null);
+    if (errors.email || !email) {
+      setSuccessEmail(null);
+      return;
+    }
+
+    const emailHandler = setTimeout(() => {
+      emailValidationHandler();
+    }, 700);
+
+    return () => clearTimeout(emailHandler);
+  }, [email, errors.email]);
+
+  //trigger de validacion fortaleza de contraseña
+
+  useEffect(() => {
+    if (password) {
+      setPasswordStrength(validatePasswordStrength(password));
+    } else {
+      setPasswordStrength(null);
+    }
+  }, [password]);
+
+  //validacion de la fortaleza de la contraseña
+  function validatePasswordStrength(password: string): {
+    strength: "Débil" | "Media" | "Buena" | "Fuerte";
+    color: string;
+    clase: { width: string; bg: string };
+    bgColor: string;
+  } {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (score <= 1)
+      return {
+        strength: "Débil",
+        color: "text-red-500",
+        clase: { width: "25%", bg: "bg-red-500" },
+        bgColor: "#ef4444", // rojo
+      };
+    if (score === 2)
+      return {
+        strength: "Media",
+        color: "text-yellow-500",
+        clase: { width: "50%", bg: "bg-yellow-400" },
+        bgColor: "#facc15", // amarillo
+      };
+    if (score === 3)
+      return {
+        strength: "Buena",
+        color: "text-yellow-500",
+        clase: { width: "75%", bg: "bg-yellow-400" },
+        bgColor: "#facc15",
+      };
+    return {
+      strength: "Fuerte",
+      color: "text-green-500",
+      clase: { width: "100%", bg: "bg-green-500" },
+      bgColor: "#22c55e", // verde
+    };
+  }
+
+  const [passwordStrength, setPasswordStrength] = useState<{
+    strength: "Débil" | "Media" | "Buena" | "Fuerte";
+    color: string;
+    clase: { width: string; bg: string };
+    bgColor: string;
+  } | null>(null);
+
+  const onSubmit = (data: FormInputs) => {
+    console.log(data);
   };
 
   return (
@@ -200,218 +214,207 @@ export default function RegisterDialog() {
         <DialogHeader>
           <DialogTitle>Crear cuenta</DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-3">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium">
-              Nombre de usuario
-            </label>
-            <div className="flex items-center gap-1">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
+          {/* Username */}
+          <div className="flex flex-col">
+            <label className="mb-1">Nombre de Usuario</label>
+            <div className="relative">
               <Input
-                id="username"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-                placeholder="ej: sherjan.dev"
+                className="pr-10"
+                {...register("username", {
+                  required: "El nombre de usuario es requerido",
+                  minLength: {
+                    value: 3,
+                    message: "Mínimo 3 caracteres",
+                  },
+                  maxLength: {
+                    value: 20,
+                    message: "Máximo 20 caracteres",
+                  },
+                  pattern: {
+                    value: /^[a-z0-9._]+$/,
+                    message:
+                      "Solo letras minúsculas, números, puntos o guiones bajos",
+                  },
+                })}
+                aria-invalid={errors.username ? "true" : "false"}
               />
-              <div className="w-5 h-5 relative">
-                <AnimatePresence mode="wait">
-                  {successName && (
-                    <motion.div
-                      key="success"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-0 left-0"
-                    >
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <CheckCircle className="text-green-500 w-5 h-5 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Nombre de usuario disponible</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </motion.div>
-                  )}
-
-                  {errorName && (
-                    <motion.div
-                      key="error"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-0 left-0"
-                    >
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <AlertCircle className="text-red-500 w-5 h-5 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-[150px] break-words">
-                              {errorName}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                {validatingName && (
+                  <div title="Verificando disponibilidad...">
+                    <Loader2 className="text-blue-500 animate-spin" />
+                  </div>
+                )}
+                {!validatingName && successName && (
+                  <div title="Nombre de usuario disponible">
+                    <UserRoundCheck className="text-green-600" />
+                  </div>
+                )}
+                {!validatingName && errorName && (
+                  <div title="Este nombre ya está en uso">
+                    <UserRoundX className="text-red-500" />
+                  </div>
+                )}
               </div>
+            </div>
+
+            {/* Mensaje de error con animación */}
+            <div className="h-4 mt-1 relative overflow-hidden">
+              <AnimatePresence mode="wait">
+                {errors.username && (
+                  <motion.p
+                    key={errors.username.message}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs text-red-500 absolute"
+                  >
+                    {errors.username.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              Correo
-            </label>
-            <div className="flex items-center gap-1">
+          {/* Email */}
+          <div className="flex flex-col">
+            <label className="mb-1">Correo</label>
+            <div className="relative">
               <Input
-                id="email"
+                className="pr-10"
                 type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="ejemplo@correo.com"
+                {...register("email", {
+                  required: "El correo es obligatorio",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Correo no válido",
+                  },
+                  minLength: {
+                    value: 5,
+                    message: "Mínimo 6 caracteres",
+                  },
+                  maxLength: {
+                    value: 254,
+                    message: "Mínimo 254 caracteres",
+                  },
+                })}
+                aria-invalid={errors.email ? "true" : "false"}
               />
-              <div className="w-5 h-5 relative">
-                <AnimatePresence mode="wait">
-                  {successEmail && (
-                    <motion.div
-                      key="success"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-0 left-0"
-                    >
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <CheckCircle className="text-green-500 w-5 h-5 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Correo disponible</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </motion.div>
-                  )}
-
-                  {errorEmail && (
-                    <motion.div
-                      key="error"
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-0 left-0"
-                    >
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <AlertCircle className="text-red-500 w-5 h-5 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-[150px] break-words">
-                              {errorEmail}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                {validatingEmail && (
+                  <div title="Verificando disponibilidad...">
+                    <Loader2 className="text-blue-500 animate-spin" />
+                  </div>
+                )}
+                {!validatingEmail && successEmail && (
+                  <div title="Si te puedes registrar con este correo">
+                    <MailCheck className="text-green-600" />
+                  </div>
+                )}
+                {!validatingEmail && errorEmail && (
+                  <div title="Ya existe una cuenta registrada con este correo">
+                    <MailX className="text-red-500" />
+                  </div>
+                )}
               </div>
+            </div>
+
+            {/* Mensaje de error con animación */}
+            <div className="h-4 mt-1 relative overflow-hidden">
+              <AnimatePresence mode="wait">
+                {errors.email && (
+                  <motion.p
+                    key={errors.email.message}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-xs text-red-500 absolute"
+                  >
+                    {errors.email.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              Contraseña
-            </label>
-            <Input
-              id="password"
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="********"
-            />
-            <AnimatePresence mode="wait">
-              {form.password && (
+          {/* Password */}
+          <div className="flex flex-col">
+            <label className="mb-1">Contraseña</label>
+            <div className="relative">
+              <Input
+                type="password"
+                {...register("password", {
+                  required: "La contraseña es obligatoria",
+                  minLength: {
+                    value: 6,
+                    message: "Mínimo 6 caracteres",
+                  },
+                  maxLength: {
+                    value: 64,
+                    message: "Máximo 64 caracteres",
+                  },
+                })}
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                {passwordStrength && (
+                  <motion.p
+                    key={passwordStrength.strength}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className={`mt-1 text-xs font-medium ${passwordStrength.color}`}
+                  >
+                    {passwordStrength.strength}
+                  </motion.p>
+                )}
+              </div>
+            </div>
+            {errors.password && (
+              <p className="text-xs text-red-500">{errors.password.message}</p>
+            )}
+
+            {passwordStrength && (
+              <div className="h-2 mt-2 w-full bg-zinc-200 rounded-full overflow-hidden">
                 <motion.div
-                  key="password-strength"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-1 flex items-center gap-2 overflow-hidden"
-                >
-                  <div
-                    className={`h-2 flex-1 rounded-full ${passwordStrengthColor()}`}
-                  />
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {passwordStrengthText()}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  className="h-full"
+                  initial={{ width: 0, backgroundColor: "#ef4444" }}
+                  animate={{
+                    width: passwordStrength.clase.width,
+                    backgroundColor: passwordStrength.bgColor,
+                  }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                />
+              </div>
+            )}
           </div>
 
-          <div>
-            <label htmlFor="repassword" className="block text-sm font-medium">
-              Confirmar contraseña
-            </label>
+          {/* Confirm Password */}
+          <div className="flex flex-col">
+            <label className="mb-1">Confirmar contraseña</label>
             <Input
-              id="repassword"
               type="password"
-              value={form.repassword}
-              onChange={(e) => setForm({ ...form, repassword: e.target.value })}
-              placeholder="********"
+              {...register("rePassword", {
+                required: "Confirma la contraseña",
+                validate: (value) =>
+                  value === password || "Las contraseñas no coinciden",
+              })}
             />
+            {errors.rePassword && (
+              <p className="text-xs text-red-500">
+                {errors.rePassword.message}
+              </p>
+            )}
           </div>
-          <AnimatePresence mode="wait">
-            {!passwordsMatch && form.repassword && (
-              <motion.p
-                key="password-error"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="text-sm text-red-500 font-medium overflow-hidden"
-              >
-                Las contraseñas no coinciden
-              </motion.p>
-            )}
-          </AnimatePresence>
-          {successMessage && (
-            <p className="text-sm text-green-600 font-medium">
-              {successMessage}
-            </p>
-          )}
-          {errorMessage && (
-            <p className="text-sm text-red-500 font-medium">{errorMessage}</p>
-          )}
-        </div>
 
-        <DialogFooter>
-          <Button
-            disabled={!isFormValid || isLoading}
-            onClick={handleRegister}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-mascoti rounded-full cursor-pointer"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...
-              </>
-            ) : (
-              "Crear cuenta"
-            )}
-          </Button>
-        </DialogFooter>
+          <Input
+            type="submit"
+            value="Registrarse"
+            className="bg-green-200 cursor-pointer"
+          />
+        </form>
+        <DialogFooter />
       </DialogContent>
     </Dialog>
   );
