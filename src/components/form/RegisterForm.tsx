@@ -103,9 +103,13 @@ export default function RegisterDialog() {
   const [errorName, setErrorName] = useState<string | null>(null);
   const [validatingName, setValidatingName] = useState<boolean>(false);
 
-  //llamada al backend para verioficar el username
+  //llamada al backend para verificar el username
   const usernameValidationHandler = async () => {
+    toast.dismiss();
     setValidatingName(true);
+    const loadingToast = toast.loading(
+      `verificando disponibilidad de ${username}...`
+    );
     setErrorName(null);
     setSuccessName(null);
     if (errors.username) {
@@ -119,14 +123,16 @@ export default function RegisterDialog() {
         });
         if (response.success) {
           setSuccessName(response.success);
-
-          toast.success("Nombre de usuaro disponble");
+          toast.dismiss(loadingToast);
+          toast.success(`El nombre de usuario ${username} está disponible`);
         }
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "No disponible";
+        toast.dismiss(loadingToast);
         setSuccessName(null);
         setErrorName(message);
+        toast.error(`El nombre de usuario ${username} no está disponible`);
       } finally {
         setValidatingName(false);
       }
@@ -156,9 +162,11 @@ export default function RegisterDialog() {
 
   //llamada al backend para verioficar el email
   const emailValidationHandler = async () => {
+    toast.dismiss();
     setValidatingEmail(true);
     setErrorEmail(null);
     setSuccessEmail(null);
+    const loadingToast = toast.loading(`Verificando ${email}`);
     if (errors.email) {
       setValidatingEmail(false);
       return;
@@ -169,11 +177,15 @@ export default function RegisterDialog() {
           email,
         });
         if (response.success) {
+          toast.dismiss(loadingToast);
           setSuccessEmail(response.success);
+          toast.success(`El email ${email} esta correcto y disponible`);
         }
       } catch (error) {
+        toast.dismiss(loadingToast);
         const message =
           error instanceof Error ? error.message : "No disponible";
+        toast.error(message);
         setSuccessEmail(null);
         setErrorEmail(message);
       } finally {
