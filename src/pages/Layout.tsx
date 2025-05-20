@@ -4,53 +4,60 @@ import "../index.css";
 import FormControl from "../components/form/FormControl";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { checkToken } from "../features/auth/authService";
-import { loginSuccess } from "../features/auth/authSlice";
+import {
+  loginSuccess,
+  disableError,
+  disableSuccess,
+} from "../features/auth/authSlice";
 import { Menubar, MenubarMenu, MenubarTrigger } from "@/components/ui/menubar";
 import { AppSidebar } from "@/components/myAccount/App-sidebar";
-import { Error } from "@/components/form/Error";
-import { Success } from "@/components/form/Success";
-import { Loader } from "@/components/form/Loader";
+import { toast } from "sonner";
 
 function Layout() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
   const localToken: string | null = localStorage.getItem("token");
 
-  //manejador de recarga de pagina
+  // Manejador de recarga de página con toast.promise
   useEffect(() => {
     if (localToken) {
       const getData = async () => {
-        const data = await checkToken(localToken);
-        if (data.ok === true) {
-          dispatch(loginSuccess({ localToken, user: data.user }));
-        }
+        await toast.promise(
+          checkToken(localToken).then((data) => {
+            if (data.ok === true) {
+              dispatch(loginSuccess({ localToken, user: data.user }));
+              // Mostramos éxito opcionalmente
+              toast.success("Sesión iniciada correctamente");
+            }
+            // Si no ok, simplemente no hacemos nada (falló el token silenciosamente)
+          }),
+          {
+            loading: "Verificando sesión...",
+            success: "Verificación completada",
+            // No usamos el toast de error, porque no se necesita
+            error: () => null,
+          }
+        );
       };
+
       getData();
-      console.log("llamando auth");
     }
   }, []);
 
+  // Mostrar errores o éxitos desde el slice, si existen
+  useEffect(() => {
+    if (auth.error) {
+      toast.error(auth.error);
+      dispatch(disableError());
+    }
+    if (auth.success) {
+      toast.success(auth.success);
+      dispatch(disableSuccess());
+    }
+  }, [auth.error, auth.success]);
+
   return (
     <div className="min-h-screen flex flex-col">
-      {auth.error && (
-        <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black/40 pointer-events-auto">
-          <div className="pointer-events-auto">
-            <Error error={auth.error} />
-          </div>
-        </div>
-      )}
-      {auth.success && (
-        <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black/40">
-          <Success success={auth.success} />
-        </div>
-      )}
-      {auth.loading && (
-        <div className="fixed inset-0 z-[9999] flex justify-center items-center bg-black/40 pointer-events-auto">
-          <div className="pointer-events-auto">
-            <Loader />
-          </div>
-        </div>
-      )}
       <header>
         <div className="containerMenu">
           <div className="logoContainer">
@@ -69,7 +76,7 @@ function Layout() {
                   </MenubarMenu>
                   <MenubarMenu>
                     <MenubarTrigger>
-                      <Link to={"/cuenta"}>Analiticas</Link>
+                      <Link to={"/cuenta"}>Analíticas</Link>
                     </MenubarTrigger>
                   </MenubarMenu>
                 </Menubar>
@@ -83,9 +90,11 @@ function Layout() {
           </div>
         </div>
       </header>
+
       <main className="container mx-auto flex-1 px-4">
         <Outlet />
       </main>
+
       <footer className="w-full h-[24px] text-center bg-gradient-mascoti text-white text-[12px] tracking-widest flex justify-center items-center">
         <span>Created by Sherjan</span>
       </footer>

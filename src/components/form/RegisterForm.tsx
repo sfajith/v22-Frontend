@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "../ui/input";
 import { useEffect, useState } from "react";
@@ -21,7 +22,12 @@ import {
   MailX,
   UserRoundCheck,
   UserRoundX,
+  AlertCircle,
+  CheckIcon,
+  XIcon,
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface FormInputs {
   username: string;
@@ -30,17 +36,66 @@ interface FormInputs {
   rePassword: string;
 }
 
+//unificacion de clases condicionales
+function cn(...classes: (string | false | null | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
+//validacion de la fortaleza de la contraseña
+function validatePasswordStrength(password: string): {
+  strength: "Débil" | "Media" | "Buena" | "Fuerte";
+  color: string;
+  clase: { width: string; bg: string };
+  bgColor: string;
+} {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1)
+    return {
+      strength: "Débil",
+      color: "text-red-500",
+      clase: { width: "25%", bg: "bg-red-500" },
+      bgColor: "#ef4444", // rojo
+    };
+  if (score === 2)
+    return {
+      strength: "Media",
+      color: "text-yellow-500",
+      clase: { width: "50%", bg: "bg-orange-400" },
+      bgColor: "#facc15", // amarillo
+    };
+  if (score === 3)
+    return {
+      strength: "Buena",
+      color: "text-yellow-500",
+      clase: { width: "75%", bg: "bg-yellow-400" },
+      bgColor: "#facc15",
+    };
+  return {
+    strength: "Fuerte",
+    color: "text-green-500",
+    clase: { width: "100%", bg: "bg-green-500" },
+    bgColor: "#22c55e", // verde
+  };
+}
+
 export default function RegisterDialog() {
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<FormInputs>({ mode: "onChange" });
 
   const password = watch("password");
   const username = watch("username");
   const email = watch("email");
+  const rePassword = watch("rePassword");
 
   //estados para el manejo de la validacion de username
   const [successName, setSuccessName] = useState<string | null>(null);
@@ -63,6 +118,8 @@ export default function RegisterDialog() {
         });
         if (response.success) {
           setSuccessName(response.success);
+
+          toast.success("Nombre de usuaro disponble");
         }
       } catch (error) {
         const message =
@@ -101,8 +158,8 @@ export default function RegisterDialog() {
     setValidatingEmail(true);
     setErrorEmail(null);
     setSuccessEmail(null);
-    if (errors.username) {
-      setValidatingName(false);
+    if (errors.email) {
+      setValidatingEmail(false);
       return;
     }
     setTimeout(async () => {
@@ -150,48 +207,6 @@ export default function RegisterDialog() {
     }
   }, [password]);
 
-  //validacion de la fortaleza de la contraseña
-  function validatePasswordStrength(password: string): {
-    strength: "Débil" | "Media" | "Buena" | "Fuerte";
-    color: string;
-    clase: { width: string; bg: string };
-    bgColor: string;
-  } {
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-
-    if (score <= 1)
-      return {
-        strength: "Débil",
-        color: "text-red-500",
-        clase: { width: "25%", bg: "bg-red-500" },
-        bgColor: "#ef4444", // rojo
-      };
-    if (score === 2)
-      return {
-        strength: "Media",
-        color: "text-yellow-500",
-        clase: { width: "50%", bg: "bg-yellow-400" },
-        bgColor: "#facc15", // amarillo
-      };
-    if (score === 3)
-      return {
-        strength: "Buena",
-        color: "text-yellow-500",
-        clase: { width: "75%", bg: "bg-yellow-400" },
-        bgColor: "#facc15",
-      };
-    return {
-      strength: "Fuerte",
-      color: "text-green-500",
-      clase: { width: "100%", bg: "bg-green-500" },
-      bgColor: "#22c55e", // verde
-    };
-  }
-
   const [passwordStrength, setPasswordStrength] = useState<{
     strength: "Débil" | "Media" | "Buena" | "Fuerte";
     color: string;
@@ -199,8 +214,51 @@ export default function RegisterDialog() {
     bgColor: string;
   } | null>(null);
 
-  const onSubmit = (data: FormInputs) => {
-    console.log(data);
+  //modelo de comprobacion para permitir el evento submit
+  const isFormValid =
+    !errors.username &&
+    !errors.email &&
+    !errors.password &&
+    !errors.rePassword &&
+    username?.length > 0 &&
+    email?.length > 0 &&
+    password?.length > 0 &&
+    rePassword?.length > 0;
+
+  //estados para menejo del registro
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  //funcion para manejo de la llamada al backend para el registro
+  const handleRegister = async () => {
+    if (errors.password) return;
+    setErrorMessage(null);
+    setIsLoading(true);
+    try {
+      const data = await registerUser({
+        username,
+        email,
+        password,
+      });
+
+      if (data.success) {
+        setSuccessMessage(
+          "¡Registro exitoso! Ve a tu correo para activar tu cuenta."
+        );
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error en el registro";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onSubmit = () => {
+    handleRegister();
+    reset();
   };
 
   return (
@@ -212,15 +270,16 @@ export default function RegisterDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Crear cuenta</DialogTitle>
+          <DialogTitle>Registro de usuario</DialogTitle>
+          <DialogDescription>Crea tu cuenta en V22</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
           {/* Username */}
-          <div className="flex flex-col">
-            <label className="mb-1">Nombre de Usuario</label>
+          <div className="grid w-full max-w-sm items-center gap-1">
+            <Label>Nombre de Usuario</Label>
             <div className="relative">
               <Input
-                className="pr-10"
+                className="pr-10 rounded-full"
                 {...register("username", {
                   required: "El nombre de usuario es requerido",
                   minLength: {
@@ -233,8 +292,7 @@ export default function RegisterDialog() {
                   },
                   pattern: {
                     value: /^[a-z0-9._]+$/,
-                    message:
-                      "Solo letras minúsculas, números, puntos o guiones bajos",
+                    message: "Solo minúsculas, números, puntos o guiones bajos",
                   },
                 })}
                 aria-invalid={errors.username ? "true" : "false"}
@@ -252,40 +310,41 @@ export default function RegisterDialog() {
                 )}
                 {!validatingName && errorName && (
                   <div title="Este nombre ya está en uso">
-                    <UserRoundX className="text-red-500" />
+                    <UserRoundX className=" text-orange-500" />
                   </div>
                 )}
               </div>
             </div>
 
             {/* Mensaje de error con animación */}
-            <div className="h-4 mt-1 relative overflow-hidden">
+            <div className="h-5 mb-1 relative overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.username && (
-                  <motion.p
+                  <motion.div
                     key={errors.username.message}
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.2 }}
-                    className="text-xs text-red-500 absolute"
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
                   >
-                    {errors.username.message}
-                  </motion.p>
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errors.username.message}</span>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </div>
 
           {/* Email */}
-          <div className="flex flex-col">
-            <label className="mb-1">Correo</label>
+          <div className="grid w-full max-w-sm items-center gap-1">
+            <Label>Correo</Label>
             <div className="relative">
               <Input
-                className="pr-10"
+                className="pr-10 rounded-full"
                 type="email"
                 {...register("email", {
-                  required: "El correo es obligatorio",
+                  required: "El correo es requerido",
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     message: "Correo no válido",
@@ -296,7 +355,7 @@ export default function RegisterDialog() {
                   },
                   maxLength: {
                     value: 254,
-                    message: "Mínimo 254 caracteres",
+                    message: "Máximo 254 caracteres",
                   },
                 })}
                 aria-invalid={errors.email ? "true" : "false"}
@@ -308,42 +367,45 @@ export default function RegisterDialog() {
                   </div>
                 )}
                 {!validatingEmail && successEmail && (
-                  <div title="Si te puedes registrar con este correo">
+                  <div title="Correo disponible">
                     <MailCheck className="text-green-600" />
                   </div>
                 )}
                 {!validatingEmail && errorEmail && (
-                  <div title="Ya existe una cuenta registrada con este correo">
-                    <MailX className="text-red-500" />
+                  <div title="Este correo ya está en uso">
+                    <MailX className="text-orange-500" />
                   </div>
                 )}
               </div>
             </div>
 
             {/* Mensaje de error con animación */}
-            <div className="h-4 mt-1 relative overflow-hidden">
+            <div className="h-5 mb-1 relative overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.email && (
-                  <motion.p
+                  <motion.div
                     key={errors.email.message}
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.2 }}
-                    className="text-xs text-red-500 absolute"
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
                   >
-                    {errors.email.message}
-                  </motion.p>
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errors.email.message}</span>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </div>
 
           {/* Password */}
-          <div className="flex flex-col">
-            <label className="mb-1">Contraseña</label>
+          <div className="grid w-full max-w-sm items-center gap-1">
+            <Label>Contraseña</Label>
+
             <div className="relative">
               <Input
+                className="pr-10 rounded-full"
                 type="password"
                 {...register("password", {
                   required: "La contraseña es obligatoria",
@@ -357,61 +419,108 @@ export default function RegisterDialog() {
                   },
                 })}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                {passwordStrength && (
-                  <motion.p
-                    key={passwordStrength.strength}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    className={`mt-1 text-xs font-medium ${passwordStrength.color}`}
-                  >
-                    {passwordStrength.strength}
-                  </motion.p>
+              <div className="w-full px-4 mt-1">
+                {passwordStrength ? (
+                  <div className="h-1 w-full bg-zinc-200 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full"
+                      initial={{ width: 0, backgroundColor: "#ef4444" }}
+                      animate={{
+                        width: passwordStrength.clase.width,
+                        backgroundColor: passwordStrength.bgColor,
+                      }}
+                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-1 w-full bg-zinc-200 rounded-full overflow-hidden"></div>
                 )}
+                <div className="absolute right-2 top-1/3 -translate-y-1/2">
+                  {passwordStrength && (
+                    <motion.p
+                      key={passwordStrength.strength}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className={`mt-1 text-xs font-medium ${passwordStrength.color}`}
+                    >
+                      {passwordStrength.strength}
+                    </motion.p>
+                  )}
+                </div>
               </div>
             </div>
-            {errors.password && (
-              <p className="text-xs text-red-500">{errors.password.message}</p>
-            )}
-
-            {passwordStrength && (
-              <div className="h-2 mt-2 w-full bg-zinc-200 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full"
-                  initial={{ width: 0, backgroundColor: "#ef4444" }}
-                  animate={{
-                    width: passwordStrength.clase.width,
-                    backgroundColor: passwordStrength.bgColor,
-                  }}
-                  transition={{ duration: 0.4, ease: "easeInOut" }}
-                />
-              </div>
-            )}
+            <div className="h-5 mb-1 relative overflow-hidden">
+              <AnimatePresence mode="wait">
+                {errors.password && (
+                  <motion.div
+                    key={errors.password.message}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
+                  >
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errors.password.message}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Confirm Password */}
-          <div className="flex flex-col">
-            <label className="mb-1">Confirmar contraseña</label>
-            <Input
-              type="password"
-              {...register("rePassword", {
-                required: "Confirma la contraseña",
-                validate: (value) =>
-                  value === password || "Las contraseñas no coinciden",
-              })}
-            />
-            {errors.rePassword && (
-              <p className="text-xs text-red-500">
-                {errors.rePassword.message}
-              </p>
-            )}
+          <div className="grid w-full max-w-sm items-center gap-1">
+            <Label>Confirmar contraseña</Label>
+            <div className="relative">
+              <Input
+                className="pr-10 rounded-full"
+                type="password"
+                {...register("rePassword", {
+                  required: "Confirma la contraseña",
+                  validate: (value) =>
+                    value === password || "Las contraseñas no coinciden",
+                })}
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                {rePassword && !errors.rePassword && (
+                  <div title="Contraseña confirmada">
+                    <CheckIcon className="text-green-600" />
+                  </div>
+                )}
+                {rePassword && errors.rePassword && (
+                  <div title="Las contraseñas no coinciden">
+                    <XIcon className="text-orange-500" />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="h-5 mb-1 relative overflow-hidden">
+              <AnimatePresence mode="wait">
+                {errors.rePassword && (
+                  <motion.div
+                    key={errors.rePassword.message}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
+                  >
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errors.rePassword.message}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           <Input
+            disabled={!isFormValid}
             type="submit"
             value="Registrarse"
-            className="bg-green-200 cursor-pointer"
+            className="bg-gradient-mascoti rounded-full text-white transition-opacity
+    opacity-50 cursor-not-allowed
+    enabled:opacity-100 enabled:cursor-pointer"
           />
         </form>
         <DialogFooter />
