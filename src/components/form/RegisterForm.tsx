@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Button } from "../ui/button";
 
 interface FormInputs {
   username: string;
@@ -243,6 +244,7 @@ export default function RegisterDialog() {
       });
 
       if (data.success) {
+        toast.success(`Registro exitoso, confirma tu cuenta desde ${email}`);
         setSuccessMessage(
           "¡Registro exitoso! Ve a tu correo para activar tu cuenta."
         );
@@ -264,7 +266,7 @@ export default function RegisterDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button className="bg-transparent hover:bg-white hover:text-black py-1 px-3 rounded-sm cursor-pointer">
+        <button className="px-3 py-1 bg-transparent rounded-sm cursor-pointer hover:bg-white hover:text-black">
           Registrarse
         </button>
       </DialogTrigger>
@@ -275,7 +277,7 @@ export default function RegisterDialog() {
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
           {/* Username */}
-          <div className="grid w-full max-w-sm items-center gap-1">
+          <div className="grid items-center w-full max-w-sm gap-1">
             <Label>Nombre de Usuario</Label>
             <div className="relative">
               <Input
@@ -297,7 +299,7 @@ export default function RegisterDialog() {
                 })}
                 aria-invalid={errors.username ? "true" : "false"}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <div className="absolute -translate-y-1/2 right-2 top-1/2">
                 {validatingName && (
                   <div title="Verificando disponibilidad...">
                     <Loader2 className="text-blue-500 animate-spin" />
@@ -310,14 +312,14 @@ export default function RegisterDialog() {
                 )}
                 {!validatingName && errorName && (
                   <div title="Este nombre ya está en uso">
-                    <UserRoundX className=" text-orange-500" />
+                    <UserRoundX className="text-orange-500 " />
                   </div>
                 )}
               </div>
             </div>
 
             {/* Mensaje de error con animación */}
-            <div className="h-5 mb-1 relative overflow-hidden">
+            <div className="relative h-5 mb-1 overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.username && (
                   <motion.div
@@ -337,7 +339,7 @@ export default function RegisterDialog() {
           </div>
 
           {/* Email */}
-          <div className="grid w-full max-w-sm items-center gap-1">
+          <div className="grid items-center w-full max-w-sm gap-1">
             <Label>Correo</Label>
             <div className="relative">
               <Input
@@ -360,7 +362,7 @@ export default function RegisterDialog() {
                 })}
                 aria-invalid={errors.email ? "true" : "false"}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <div className="absolute -translate-y-1/2 right-2 top-1/2">
                 {validatingEmail && (
                   <div title="Verificando disponibilidad...">
                     <Loader2 className="text-blue-500 animate-spin" />
@@ -380,7 +382,7 @@ export default function RegisterDialog() {
             </div>
 
             {/* Mensaje de error con animación */}
-            <div className="h-5 mb-1 relative overflow-hidden">
+            <div className="relative h-5 mb-1 overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.email && (
                   <motion.div
@@ -400,7 +402,7 @@ export default function RegisterDialog() {
           </div>
 
           {/* Password */}
-          <div className="grid w-full max-w-sm items-center gap-1">
+          <div className="grid items-center w-full max-w-sm gap-1">
             <Label>Contraseña</Label>
 
             <div className="relative">
@@ -421,7 +423,7 @@ export default function RegisterDialog() {
               />
               <div className="w-full px-4 mt-1">
                 {passwordStrength ? (
-                  <div className="h-1 w-full bg-zinc-200 rounded-full overflow-hidden">
+                  <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200">
                     <motion.div
                       className="h-full"
                       initial={{ width: 0, backgroundColor: "#ef4444" }}
@@ -433,9 +435,9 @@ export default function RegisterDialog() {
                     />
                   </div>
                 ) : (
-                  <div className="h-1 w-full bg-zinc-200 rounded-full overflow-hidden"></div>
+                  <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200"></div>
                 )}
-                <div className="absolute right-2 top-1/3 -translate-y-1/2">
+                <div className="absolute -translate-y-1/2 right-2 top-1/3">
                   {passwordStrength && (
                     <motion.p
                       key={passwordStrength.strength}
@@ -450,7 +452,7 @@ export default function RegisterDialog() {
                 </div>
               </div>
             </div>
-            <div className="h-5 mb-1 relative overflow-hidden">
+            <div className="relative h-5 mb-1 overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.password && (
                   <motion.div
@@ -470,7 +472,7 @@ export default function RegisterDialog() {
           </div>
 
           {/* Confirm Password */}
-          <div className="grid w-full max-w-sm items-center gap-1">
+          <div className="grid items-center w-full max-w-sm gap-1">
             <Label>Confirmar contraseña</Label>
             <div className="relative">
               <Input
@@ -482,7 +484,7 @@ export default function RegisterDialog() {
                     value === password || "Las contraseñas no coinciden",
                 })}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <div className="absolute -translate-y-1/2 right-2 top-1/2">
                 {rePassword && !errors.rePassword && (
                   <div title="Contraseña confirmada">
                     <CheckIcon className="text-green-600" />
@@ -495,7 +497,7 @@ export default function RegisterDialog() {
                 )}
               </div>
             </div>
-            <div className="h-5 mb-1 relative overflow-hidden">
+            <div className="relative h-5 mb-1 overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.rePassword && (
                   <motion.div
@@ -513,15 +515,36 @@ export default function RegisterDialog() {
               </AnimatePresence>
             </div>
           </div>
+          <div className="flex flex-col justify-center w-full">
+            <Button
+              disabled={!isFormValid}
+              className="w-full text-xl tracking-tight text-white transition-opacity rounded-full opacity-50 cursor-not-allowed bg-gradient-mascoti enabled:opacity-100 enabled:cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Registrando...
+                </>
+              ) : (
+                "Crear cuenta"
+              )}
+            </Button>
 
-          <Input
-            disabled={!isFormValid}
-            type="submit"
-            value="Registrarse"
-            className="bg-gradient-mascoti rounded-full text-white transition-opacity
-    opacity-50 cursor-not-allowed
-    enabled:opacity-100 enabled:cursor-pointer"
-          />
+            {successMessage && (
+              <div className="flex justify-center">
+                <p className="absolute p-1 mt-2 text-xs font-medium tracking-tight text-green-500 duration-100 rounded-full bottom-2 animate-in">
+                  {successMessage}
+                </p>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="flex justify-center">
+                <p className="absolute p-1 mt-2 text-xs font-medium tracking-tight text-red-500 duration-100 rounded-full bottom-2 animate-in">
+                  {errorMessage}
+                </p>
+              </div>
+            )}
+          </div>
         </form>
         <DialogFooter />
       </DialogContent>
