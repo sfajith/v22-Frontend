@@ -16,13 +16,16 @@ import {
   loadLocalCollection,
   globalError,
 } from "../features/auth/authSlice";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
 function Home() {
   // `userCode` es opcional y se usa solo cuando el usuario quiere personalizar la URL
   const [form, setForm] = useState<{
     originalUrl: string;
     userCode?: string;
-  }>({ originalUrl: "", userCode: "" });
+    isValidCode: boolean;
+    isValidUrl: string | null;
+  }>({ originalUrl: "", userCode: "", isValidCode: true, isValidUrl: null });
 
   const [showLink, setShowLink] = useState<string>("");
   const [custom, setCustom] = useState<boolean>(false);
@@ -46,6 +49,31 @@ function Home() {
     }
   }, []);
 
+  //Esquema paravalidar las url ingresadas por el usuario
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      newLinkFieldValidator();
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [form.originalUrl]);
+
+  const newLinkFieldValidator = () => {
+    toast.dismiss();
+    if (!form.originalUrl) {
+      return;
+    }
+
+    try {
+      new URL(form.originalUrl);
+      toast.success("Es una URL valida");
+      setForm({ ...form, isValidUrl: "URL valida" });
+    } catch (error) {
+      setForm({ ...form, isValidUrl: "error" });
+      toast.error("No es una URL valida");
+    }
+  };
+
   const newLinkPayload = {
     token: localStorage.getItem("token"),
     link: {
@@ -58,6 +86,19 @@ function Home() {
   // Si el usuario está autenticado, se guarda en el estado global.
   // Si no lo está, se almacena en localStorage para persistencia local.
   const newLinkHandler = async () => {
+    toast.dismiss();
+    if (!form.originalUrl) {
+      toast.error("Debes introducir un enlace!");
+      return;
+    }
+    if (!form.isValidUrl) {
+      toast.error("Introduce una URL valida");
+      return;
+    }
+    if (!form.isValidCode) {
+      toast.error("Tu codigo personalizado es invalido");
+      return;
+    }
     try {
       dispatch(startLink());
       const link = await newLink(newLinkPayload);
@@ -68,14 +109,29 @@ function Home() {
         linksArray.push(link);
         localStorage.setItem("links", JSON.stringify(linksArray));
         dispatch(createdLink());
-        setForm({ originalUrl: "", userCode: "" });
+        setForm({
+          originalUrl: "",
+          userCode: "",
+          isValidCode: true,
+          isValidUrl: "URL valida",
+        });
         setCustom(false);
       }
       dispatch(addNewLink({ link }));
+      toast.success("Enlace acortado con exito!");
+      if (form.originalUrl) {
+        setForm({
+          originalUrl: "",
+          userCode: "",
+          isValidCode: true,
+          isValidUrl: "URL valida",
+        });
+      }
     } catch (error: unknown) {
       dispatch(cleanLink());
       const err = error as Error;
       dispatch(globalError(err.message));
+      toast.error(err.message);
     }
   };
   // Copia el enlace corto en el portapapeles
@@ -84,6 +140,9 @@ function Home() {
 
   // Alterna la opción para habilitar o deshabilitar enlaces personalizados
   const customLinkHandler = () => {
+    if (!custom) {
+      setForm({ ...form, userCode: "", isValidCode: true });
+    }
     setCustom(!custom);
   };
 
@@ -126,7 +185,7 @@ function Home() {
                   copyToClipboard(showLink);
                   toast.success(`Enlace copiado con exito ${showLink}`);
                 }}
-                className="text-2xl font-bold text-[#751B80] text-center border rounded-lg border-dashed border-2 border-[#751B80] w-1/3 flex justify-evenly items-center cursor-pointer"
+                className="text-2xl font-bold text-[#751B80] text-center  rounded-lg border-dashed border-2 border-[#751B80] w-1/3 flex justify-evenly items-center cursor-pointer"
               >
                 <h2>{showLink}</h2>
                 <FiCopy />
@@ -136,17 +195,47 @@ function Home() {
         </AnimatePresence>
 
         {/* Campo de entrada para la URL original */}
-        <motion.div className="flex flex-col mt-4 mx-auto w-1/2">
-          <Input
-            type="text"
-            value={form.originalUrl}
-            required
-            className="rounded-full"
-            placeholder="Pega el enlace que deseas acortar..."
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setForm({ ...form, originalUrl: e.target.value });
-            }}
-          />
+        <motion.div className="flex flex-col mt-4">
+          <div className="flex items-center w-1/2 gap-1 mx-auto">
+            <Input
+              type="text"
+              value={form.originalUrl}
+              required
+              className="rounded-full relatve"
+              placeholder="Pega el enlace que deseas acortar..."
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setForm({ ...form, originalUrl: e.target.value });
+              }}
+            />
+            <div className="relative w-5 h-5">
+              <AnimatePresence mode="wait">
+                {form.isValidUrl === "URL valida" && form.originalUrl && (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute"
+                  >
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  </motion.div>
+                )}
+                {form.isValidUrl === "error" && (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute"
+                  >
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
           <AnimatePresence initial={false}>
             {custom && (
               <motion.div
@@ -164,7 +253,7 @@ function Home() {
         </motion.div>
 
         {/* Botones para personalizar o acortar el enlace */}
-        <div className="flex justify-center gap-10 mt-5 w-full">
+        <div className="flex justify-center w-full gap-10 mt-5">
           {custom ? (
             <ButtomHospet content="Cancelar" job={customLinkHandler} />
           ) : (
@@ -178,10 +267,10 @@ function Home() {
       </div>
 
       {/* Lista de enlaces generados, según si el usuario está autenticado o no */}
-      <div className="flex flex-1 justify-center">
+      <div className="flex justify-center flex-1">
         {isAuthenticated ? (
           <div className="flex flex-col">
-            <div className="text-sm text-muted-foreground text-center">
+            <div className="text-sm text-center text-muted-foreground">
               Mostrando {collection.userLinks.length} de {collection.totalCount}{" "}
               enlaces
             </div>

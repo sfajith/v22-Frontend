@@ -15,6 +15,7 @@ import { loginUser } from "../../features/auth/authService";
 import { Loader2 } from "lucide-react"; // Ícono de carga de Lucide
 import { useNavigate } from "react-router-dom";
 import { useUserCollection } from "../../app/hooks/useUserCollection";
+import { toast } from "sonner";
 
 export default function LoginDialog() {
   const dispatch = useAppDispatch();
@@ -42,10 +43,12 @@ export default function LoginDialog() {
         localStorage.setItem("token", data.token);
         setErrorMessage(null);
         setOpen(false);
+        toast.success("Ingresaste con exito!");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Error al iniciar sesión";
         setErrorMessage(message);
+        toast.error(message);
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +62,7 @@ export default function LoginDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="bg-transparent hover:bg-white hover:text-black py-1 px-3 rounded-sm cursor-pointer">
+        <button className="px-3 py-1 bg-transparent rounded-sm cursor-pointer hover:bg-white hover:text-black">
           Ingresar
         </button>
       </DialogTrigger>
@@ -97,12 +100,12 @@ export default function LoginDialog() {
 
           <button
             onClick={handleForgotPassword}
-            className="text-xs font-medium text-muted-foreground underline cursor-pointer"
+            className="text-xs font-medium underline cursor-pointer text-muted-foreground"
           >
             Olvidé mi contraseña
           </button>
           {errorMessage && (
-            <p className="text-sm text-red-500 font-medium">{errorMessage}</p>
+            <p className="text-sm font-medium text-red-500">{errorMessage}</p>
           )}
         </div>
 
@@ -110,11 +113,11 @@ export default function LoginDialog() {
           <Button
             disabled={!isFormValid || isLoading}
             onClick={handleLogin}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-mascoti rounded-full cursor-pointer"
+            className="flex items-center justify-center w-full gap-2 rounded-full cursor-pointer bg-gradient-mascoti"
           >
             {isLoading ? (
               <>
-                <Loader2 className="animate-spin w-4 h-4" />
+                <Loader2 className="w-4 h-4 animate-spin" />
                 Ingresando...
               </>
             ) : (

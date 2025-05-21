@@ -30,7 +30,7 @@ export function SidebarAccordion() {
               e.preventDefault();
               changePasswordHandler();
             }}
-            className="px-6 border rounded-lg pt-2 pb-4"
+            className="px-6 pt-2 pb-4 border rounded-lg"
           >
             <div className="formDiv">
               <label
@@ -44,7 +44,6 @@ export function SidebarAccordion() {
                 type="password"
                 name="password"
                 id="password"
-                value={form.newPassword}
                 required
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setForm({ ...form, password: e.target.value });
@@ -93,7 +92,7 @@ export function SidebarAccordion() {
                 }}
               />
               {form.rePassword && form.newPassword !== form.rePassword && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="mt-1 text-xs text-red-500">
                   Las contraseñas no coinciden.
                 </p>
               )}
@@ -121,7 +120,7 @@ export function SidebarAccordion() {
         </AccordionTrigger>
         <AccordionContent>
           <form
-            className="px-6 bg-red-100 rounded-lg pt-2 pb-4"
+            className="px-6 pt-2 pb-4 bg-red-100 rounded-lg"
             onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
               e.preventDefault();
               deleteUserHandler();
@@ -163,7 +162,7 @@ export function SidebarAccordion() {
                 }}
               />
               {eliminar === "eliminar" && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="mt-1 text-xs text-red-500">
                   Seguro? te vamos a extrañar 😞
                 </p>
               )}

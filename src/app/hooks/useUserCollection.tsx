@@ -8,6 +8,7 @@ import {
   deleteFromCollection,
 } from "../../features/auth/authSlice";
 import { getUserCollection, deleteLink } from "../../features/auth/authService";
+import { toast } from "sonner";
 
 // Custom hook para manejar la colección de enlaces del usuario
 export function useUserCollection() {
@@ -69,6 +70,8 @@ export function useUserCollection() {
 
   // Función para eliminar un enlace de la colección
   const deleteLinkHandler = async (id: string) => {
+    console.log(user?.username, localStorage.getItem("token"), id);
+    toast.dismiss();
     const payload = {
       token: localStorage.getItem("token"),
       username: user?.username || "linkAdmin",
@@ -79,12 +82,12 @@ export function useUserCollection() {
         await deleteLink(payload);
       }
       dispatch(deleteFromCollection({ id }));
+      toast.warning("Enlace eliminado");
     } catch (error) {
-      dispatch(
-        globalError(
-          error instanceof Error ? error.message : "Error al eliminar el enlace"
-        )
-      );
+      const message =
+        error instanceof Error ? error.message : "Error en el registro";
+      toast.error(message);
+      dispatch(globalError(message));
     }
   };
 

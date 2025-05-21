@@ -22,22 +22,17 @@ function Layout() {
   useEffect(() => {
     if (localToken) {
       const getData = async () => {
-        await toast.promise(
-          checkToken(localToken).then((data) => {
-            if (data.ok === true) {
-              dispatch(loginSuccess({ localToken, user: data.user }));
-              // Mostramos éxito opcionalmente
-              toast.success("Sesión iniciada correctamente");
-            }
-            // Si no ok, simplemente no hacemos nada (falló el token silenciosamente)
-          }),
-          {
-            loading: "Verificando sesión...",
-            success: "Verificación completada",
-            // No usamos el toast de error, porque no se necesita
-            error: () => null,
+        try {
+          const data = await checkToken(localToken);
+          if (data.ok === true) {
+            dispatch(loginSuccess({ localToken, user: data.user }));
+            // Puedes mostrar un toast opcional si lo deseas:
+            // toast.success("Sesión iniciada correctamente");
           }
-        );
+          // Si el token no es válido, simplemente no hacemos nada
+        } catch (error) {
+          // Error al verificar el token (puedes manejarlo si lo deseas)
+        }
       };
 
       getData();
@@ -47,23 +42,23 @@ function Layout() {
   // Mostrar errores o éxitos desde el slice, si existen
   useEffect(() => {
     if (auth.error) {
-      toast.error(auth.error);
+      // toast.error(auth.error);
       dispatch(disableError());
     }
     if (auth.success) {
-      toast.success(auth.success);
+      //  toast.success(auth.success);
       dispatch(disableSuccess());
     }
   }, [auth.error, auth.success]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <header>
         <div className="containerMenu">
           <div className="logoContainer">
             <img className="logo" src="/bitmap.png" alt="logo" />
           </div>
-          <div className="authMenu flex items-center">
+          <div className="flex items-center authMenu">
             {!auth.isAuthenticated ? (
               <FormControl />
             ) : (
@@ -91,7 +86,7 @@ function Layout() {
         </div>
       </header>
 
-      <main className="container mx-auto flex-1 px-4">
+      <main className="container flex-1 px-4 mx-auto">
         <Outlet />
       </main>
 

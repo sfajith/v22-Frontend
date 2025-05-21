@@ -57,7 +57,7 @@ function CardLink({
       {/* Encabezado de la tarjeta con el enlace corto y botón de eliminación */}
       <div className="flex justify-between">
         {/* Muestra el enlace acortado con botón para copiar */}
-        <div className="text-gray-800 bg-[#751b80] max-w-[90%] text-[14px] border rounded-lg border-dashed border-2 border-gray-300 mb-1 flex justify-between px-2 py-1 gap-3">
+        <div className="text-gray-800 bg-[#751b80] max-w-[90%] text-[14px] rounded-lg border-dashed border-2 border-gray-300 mb-1 flex justify-between px-2 py-1 gap-3">
           <h3 className="text-white">{shortUrl}</h3>
           <div className="flex items-center">
             <FiCopy
@@ -115,7 +115,7 @@ function CardLink({
             )
           }
           children={
-            <div className="h-7 w-7 absolute bg-red-300 left-0 bottom-0 rounded-bl-lg rounded-tr-lg flex justify-center items-center text-white cursor-pointer">
+            <div className="absolute bottom-0 left-0 flex items-center justify-center text-white bg-red-300 rounded-tr-lg rounded-bl-lg cursor-pointer h-7 w-7">
               <motion.div
                 animate={{ opacity: [1, 0.2, 1] }}
                 transition={{
