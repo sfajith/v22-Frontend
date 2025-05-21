@@ -49,6 +49,7 @@ export default function LoginDialog() {
           error instanceof Error ? error.message : "Error al iniciar sesión";
         setErrorMessage(message);
         toast.error(message);
+        handlerLoadCollection();
       } finally {
         setIsLoading(false);
       }
