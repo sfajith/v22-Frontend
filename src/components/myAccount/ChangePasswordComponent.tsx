@@ -15,7 +15,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { AlertCircle, CheckIcon, Loader2, XIcon } from "lucide-react";
 import { Button } from "../ui/button";
-import { validatePasswordStrength } from "../../utils/utils";
+import { validatePasswordStrength } from "../../../../shared/validatePasswordStrength";
+import { passwordValidation } from "../../features/auth/authService";
 import { toast } from "sonner";
 
 //unificacion de clases condicionales

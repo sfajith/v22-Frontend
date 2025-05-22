@@ -405,3 +405,33 @@ export async function emailValidation(payload: PayloadEmailValidation) {
   }
   return data as emailValidationSuccess;
 }
+
+//llama el backend para validar la contraseña via pwned
+type PayloadPasswordlValidation = {
+  email: string;
+};
+type passwordValidationSuccess = {
+  success: string;
+};
+type passwordValidationError = {
+  error: string;
+};
+export async function passwordValidation(payload: PayloadPasswordlValidation) {
+  const response = await fetch(
+    `http://localhost:3000/api/user/password-validation`,
+    {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data: passwordValidationSuccess | passwordValidationError =
+    await response.json();
+  if (!response.ok) {
+    const err = data as passwordValidationError;
+    throw new Error(err.error || "No disponible");
+  }
+  return data as passwordValidationSuccess;
+}

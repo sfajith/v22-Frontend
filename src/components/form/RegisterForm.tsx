@@ -3,7 +3,7 @@ import {
   usernameValidation,
   emailValidation,
 } from "../../features/auth/authService";
-import { validatePasswordStrength } from "../../utils/utils";
+import { validatePasswordStrength } from "../../../../shared/validatePasswordStrength";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import {
@@ -239,10 +239,9 @@ export default function RegisterDialog() {
   //vigilante de form
   useEffect(() => {
     if (password) trigger("password");
-  }, [password]);
-  useEffect(() => {
-    if (rePassword) trigger("password");
-  }, [rePassword]);
+    if (rePassword) trigger("rePassword");
+  }, [password, rePassword]);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
