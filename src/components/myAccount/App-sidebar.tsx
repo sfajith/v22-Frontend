@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { UserCog } from "lucide-react";
 import md5 from "md5";
-import { SidebarAccordion } from "./SidebarAccordion";
+import { ChangePasswordComponent } from "./ChangePasswordComponent";
+import { DeleteAccountComponent } from "./DeleteAccountComponent";
 import { Button } from "../ui/button";
 
 type PropAppSidebar = {
@@ -58,21 +59,22 @@ export function AppSidebar({ email, username }: PropAppSidebar) {
               alt="Avatar"
               className="w-20 h-20 rounded-full"
             />
-            <span className="text-lg text-muted-foreground text-center">
+            <span className="text-lg text-center text-muted-foreground">
               @{username}
             </span>
-            <div className="mt-3 py-2 px-4 bg-gradient-mascoti  rounded-full text-white">
+            <div className="px-4 py-2 mt-3 text-white rounded-full bg-gradient-mascoti">
               <span>{email}</span>
             </div>
           </div>
           <div className="px-4">
-            <SidebarAccordion />
+            <ChangePasswordComponent />
+            <DeleteAccountComponent />
           </div>
         </div>
         <SheetFooter>
           <SheetClose asChild>
             <AlertDialog>
-              <AlertDialogTrigger className="cursor-pointer text-left text-muted-foreground">
+              <AlertDialogTrigger className="text-left cursor-pointer text-muted-foreground">
                 Cerrar sesion
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -86,7 +88,7 @@ export function AppSidebar({ email, username }: PropAppSidebar) {
                     Cancelar
                   </AlertDialogCancel>
                   <Button
-                    className="cursor-pointer bg-red-400 hover:bg-red-300"
+                    className="bg-red-400 cursor-pointer hover:bg-red-300"
                     onClick={() => {
                       logOutHandler();
                     }}

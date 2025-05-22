@@ -90,6 +90,7 @@ export default function RegisterDialog() {
     handleSubmit,
     watch,
     reset,
+    trigger,
     formState: { errors },
   } = useForm<FormInputs>({ mode: "onChange" });
 
@@ -236,7 +237,8 @@ export default function RegisterDialog() {
     username?.length > 0 &&
     email?.length > 0 &&
     password?.length > 0 &&
-    rePassword?.length > 0;
+    rePassword?.length > 0 &&
+    passwordStrength?.strength !== "Débil";
 
   //estados para menejo del registro
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -275,6 +277,13 @@ export default function RegisterDialog() {
     reset();
   };
 
+  //vigilante de form
+  useEffect(() => {
+    if (password) trigger("password");
+  }, [password]);
+  useEffect(() => {
+    if (rePassword) trigger("password");
+  }, [rePassword]);
   return (
     <Dialog>
       <DialogTrigger asChild>

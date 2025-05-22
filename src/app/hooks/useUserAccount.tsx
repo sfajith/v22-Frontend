@@ -7,6 +7,7 @@ import {
   globalError,
   disableError,
 } from "../../features/auth/authSlice";
+import { toast } from "sonner";
 
 export function useUserAccount() {
   const [form, setForm] = useState<{
@@ -15,10 +16,13 @@ export function useUserAccount() {
     rePassword: string;
   }>({ password: "", newPassword: "", rePassword: "" });
 
+  const [evento, setEvento] = useState<string | null>(null);
+
   const auth = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
   const handlerChangePassword = async () => {
+    setEvento("loading");
     const token = localStorage.getItem("token");
 
     if (auth.user) {
@@ -32,15 +36,24 @@ export function useUserAccount() {
       };
       try {
         const response = await changePassword(payload);
+        console.log("onchange password");
         if (response.success) {
+          setEvento("success");
           setForm({ password: "", newPassword: "", rePassword: "" });
           dispatch(globalSuccess(response.success));
+          toast.success("Contraseña cambiada con exito");
           setTimeout(() => {
             localStorage.removeItem("token"); // Eliminar token
             window.location.href = "/";
-          }, 1000);
+          }, 2000);
         }
       } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Error al cambiar la contraseña"
+        );
+        setEvento("error");
         setForm({ password: "", newPassword: "", rePassword: "" });
         dispatch(
           globalError(
@@ -74,7 +87,7 @@ export function useUserAccount() {
           setTimeout(() => {
             localStorage.removeItem("token"); // Eliminar token
             window.location.href = "/";
-          }, 1000);
+          }, 2000);
         }
       } catch (error) {
         setForm({ password: "", newPassword: "", rePassword: "" });
@@ -91,5 +104,11 @@ export function useUserAccount() {
       }
     }
   };
-  return { handlerChangePassword, handlerDeleteUserAcount, form, setForm };
+  return {
+    handlerChangePassword,
+    handlerDeleteUserAcount,
+    form,
+    evento,
+    setForm,
+  };
 }
