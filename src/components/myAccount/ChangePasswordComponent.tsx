@@ -15,52 +15,12 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { AlertCircle, CheckIcon, Loader2, XIcon } from "lucide-react";
 import { Button } from "../ui/button";
+import { validatePasswordStrength } from "../../utils/utils";
+import { toast } from "sonner";
 
 //unificacion de clases condicionales
 function cn(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
-}
-
-//validacion de la fortaleza de la contraseña
-function validatePasswordStrength(password: string): {
-  strength: "Débil" | "Media" | "Buena" | "Fuerte";
-  color: string;
-  clase: { width: string; bg: string };
-  bgColor: string;
-} {
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-  if (/\d/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 1)
-    return {
-      strength: "Débil",
-      color: "text-red-500",
-      clase: { width: "25%", bg: "bg-red-500" },
-      bgColor: "#ef4444", // rojo
-    };
-  if (score === 2)
-    return {
-      strength: "Media",
-      color: "text-yellow-500",
-      clase: { width: "50%", bg: "bg-orange-400" },
-      bgColor: "#facc15", // amarillo
-    };
-  if (score === 3)
-    return {
-      strength: "Buena",
-      color: "text-yellow-500",
-      clase: { width: "75%", bg: "bg-yellow-400" },
-      bgColor: "#facc15",
-    };
-  return {
-    strength: "Fuerte",
-    color: "text-green-500",
-    clase: { width: "100%", bg: "bg-green-500" },
-    bgColor: "#22c55e", // verde
-  };
 }
 
 type Inputs = {
@@ -70,13 +30,7 @@ type Inputs = {
 };
 
 export function ChangePasswordComponent() {
-  const {
-    evento,
-    setForm,
-    handlerChangePassword,
-    handlerDeleteUserAcount,
-    form,
-  } = useUserAccount();
+  const { evento, handlerChangePassword, setEvento } = useUserAccount();
 
   const {
     register,
@@ -106,37 +60,29 @@ export function ChangePasswordComponent() {
     bgColor: string;
   } | null>(null);
 
-  //estados para menejo del registro
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
-    console.log("onsubmit");
-    await handlerChangePassword();
+    if (data.newPassword !== data.rePassword) {
+      return toast.error("Las contraseñas no coinciden");
+    }
+    await handlerChangePassword(data.password, data.newPassword);
   };
 
   //vigilante de form
   useEffect(() => {
     if (password) {
       trigger("password");
-      setForm({ ...form, password });
+      setEvento(null);
     }
-  }, [password]);
-
-  useEffect(() => {
     if (newPassword) {
       trigger("newPassword");
-      setForm({ ...form, newPassword });
+      setEvento(null);
     }
-  }, [newPassword]);
-
-  useEffect(() => {
     if (rePassword) {
       trigger("rePassword");
-      setForm({ ...form, rePassword });
+      setEvento(null);
     }
-  }, [rePassword]);
+  }, [password, newPassword, rePassword]);
+
   //modelo de comprobacion para permitir el evento submit
   const isFormValid =
     !errors.password &&

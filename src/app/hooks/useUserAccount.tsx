@@ -21,51 +21,54 @@ export function useUserAccount() {
   const auth = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
-  const handlerChangePassword = async () => {
+  const handlerChangePassword = async (
+    password: string,
+    newPassword: string
+  ) => {
     setEvento("loading");
     const token = localStorage.getItem("token");
 
-    if (auth.user) {
-      const payload = {
-        token,
-        username: auth.user.username,
-        body: {
-          password: form.password,
-          newPassword: form.newPassword,
-        },
-      };
-      try {
-        const response = await changePassword(payload);
-        console.log("onchange password");
-        if (response.success) {
-          setEvento("success");
-          setForm({ password: "", newPassword: "", rePassword: "" });
-          dispatch(globalSuccess(response.success));
-          toast.success("Contraseña cambiada con exito");
-          setTimeout(() => {
-            localStorage.removeItem("token"); // Eliminar token
-            window.location.href = "/";
-          }, 2000);
-        }
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error al cambiar la contraseña"
-        );
-        setEvento("error");
-        setForm({ password: "", newPassword: "", rePassword: "" });
-        dispatch(
-          globalError(
-            error instanceof Error
-              ? error.message
-              : "Error al cambiar la contraseña"
-          )
-        );
+    if (!auth.user) {
+      toast.error("Usuario no autenticado");
+      setEvento("error");
+      return;
+    }
+
+    const payload = {
+      token,
+      username: auth.user.username,
+      body: { password, newPassword },
+    };
+
+    try {
+      const response = await changePassword(payload);
+      console.log("onchange password");
+
+      if (response.success) {
+        setEvento("success");
+        dispatch(globalSuccess(response.success));
+        toast.success("Contraseña cambiada con éxito");
+
         setTimeout(() => {
-          dispatch(disableError());
-        }, 5000);
+          localStorage.removeItem("token"); // Eliminar token
+          window.location.href = "/";
+        }, 2000);
+      } else {
+        throw new Error("No se pudo cambiar la contraseña");
       }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Error al cambiar la contraseña";
+
+      toast.error(errorMessage);
+      setEvento("error");
+
+      dispatch(globalError(errorMessage));
+      setTimeout(() => {
+        dispatch(disableError());
+      }, 5000);
     }
   };
 
@@ -109,6 +112,7 @@ export function useUserAccount() {
     handlerDeleteUserAcount,
     form,
     evento,
+    setEvento,
     setForm,
   };
 }
