@@ -8,20 +8,19 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
   AlertCircle,
-  CheckIcon,
   CircleCheck,
   CircleX,
+  Eye,
+  EyeClosed,
   Loader2,
   ShieldAlert,
   ShieldCheck,
-  XIcon,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { validatePasswordStrength } from "../../../../shared/validatePasswordStrength";
@@ -54,6 +53,10 @@ export function ChangePasswordComponent() {
   const newPassword = watch("newPassword");
   const rePassword = watch("rePassword");
 
+  //Estados para el manejo de mostrar oculat contraseñas
+  const [eyePassword, setEyePassword] = useState<boolean>(false);
+  const [eyeNewPassword, setEyeNewPassword] = useState<boolean>(false);
+  const [eyeRePassword, setEyeRePassword] = useState<boolean>(false);
   //trigger de validacion fortaleza de contraseña
   useEffect(() => {
     if (newPassword) {
@@ -175,19 +178,64 @@ export function ChangePasswordComponent() {
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
           <Label>Contraseña</Label>
-          <Input
-            className="pr-10 mt-1 rounded-full"
-            type="password"
-            {...register("password", {
-              required: "Ingresa tu contraseña actual",
-              minLength: { value: 6, message: "Contraseña incompleta" },
-              maxLength: {
-                value: 64,
-                message: "Esto es muy largo para ser tu contraseña",
-              },
-            })}
-            aria-invalid={errors.password ? "true" : "false"}
-          />
+          <div className="relative mt-1">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={eyePassword ? "text" : "password"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Input
+                  className="pr-10 mt-1 rounded-full"
+                  type={eyePassword ? "text" : "password"}
+                  {...register("password", {
+                    required: "Ingresa tu contraseña actual",
+                    minLength: { value: 6, message: "Contraseña incompleta" },
+                    maxLength: {
+                      value: 64,
+                      message: "Esto es muy largo para ser tu contraseña",
+                    },
+                  })}
+                  aria-invalid={errors.password ? "true" : "false"}
+                />
+              </motion.div>
+            </AnimatePresence>
+            {/* Mensajes y botón para mostrar/ocultar */}
+            <div className="absolute flex items-center gap-2 -translate-y-1/2 right-2 top-2/4">
+              {/* Botón mostrar/ocultar */}
+              <button
+                type="button"
+                onClick={() => setEyePassword(!eyePassword)}
+                className="cursor-pointer text-zinc-500 hover:text-zinc-700"
+              >
+                <AnimatePresence mode="wait">
+                  {eyePassword ? (
+                    <motion.div
+                      key="eye-closed"
+                      initial={{ opacity: 0, rotate: -10 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: 10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <EyeClosed />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="eye"
+                      initial={{ opacity: 0, rotate: 10 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Eye />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </button>
+            </div>
+          </div>
           <div className="relative h-5 mb-1 overflow-hidden">
             <AnimatePresence mode="wait">
               {errors.password && (
@@ -208,22 +256,34 @@ export function ChangePasswordComponent() {
 
           <Label>Nueva contraseña</Label>
           <div className="relative mt-1">
-            <Input
-              className="pr-10 rounded-full"
-              type="password"
-              {...register("newPassword", {
-                required: "Ingresa tu nueva contraseña",
-                minLength: {
-                  value: 6,
-                  message: "La contraseña debe tener minimo 6 caracteres",
-                },
-                maxLength: {
-                  value: 64,
-                  message: "Maximo 64 caracteres",
-                },
-              })}
-              aria-invalid={errors.newPassword ? "true" : "false"}
-            />
+            {/* Input */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={eyeNewPassword ? "text" : "password"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Input
+                  className="pr-10 rounded-full"
+                  type={eyeNewPassword ? "text" : "password"}
+                  {...register("newPassword", {
+                    required: "Ingresa tu nueva contraseña",
+                    minLength: {
+                      value: 6,
+                      message: "La contraseña debe tener minimo 6 caracteres",
+                    },
+                    maxLength: {
+                      value: 64,
+                      message: "Maximo 64 caracteres",
+                    },
+                  })}
+                  aria-invalid={errors.newPassword ? "true" : "false"}
+                />
+              </motion.div>
+            </AnimatePresence>
+            {/* Indicador de fuerza de contraseña */}
             <div className="w-full px-4 mt-1">
               {newPasswordStrength ? (
                 <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200">
@@ -240,77 +300,126 @@ export function ChangePasswordComponent() {
               ) : (
                 <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200"></div>
               )}
-              <div className="absolute -translate-y-1/2 right-2 top-1/3">
-                {newPasswordStrength &&
-                  (newPasswordStrength.strength === "Buena" ||
-                    newPasswordStrength.strength === "Fuerte") &&
-                  pwLoading === false &&
-                  pwnet === false && (
+            </div>
+
+            {/* Mensajes y botón para mostrar/ocultar */}
+            <div className="absolute flex items-center gap-2 -translate-y-1/2 right-2 top-2/5">
+              {newPasswordStrength &&
+                (newPasswordStrength.strength === "Buena" ||
+                  newPasswordStrength.strength === "Fuerte") &&
+                pwLoading === false &&
+                pwnet === false && (
+                  <motion.div
+                    key={newPasswordStrength.strength + "-alert"}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-[9px] font-medium text-[#f77f00]"
+                  >
+                    <div className="flex items-center pt-1">
+                      <p>No segura</p>
+                      <ShieldAlert className="ml-1" />
+                    </div>
+                  </motion.div>
+                )}
+
+              {newPasswordStrength &&
+                pwnet === true &&
+                (newPasswordStrength.strength === "Buena" ||
+                  newPasswordStrength.strength === "Fuerte") &&
+                pwLoading === false && (
+                  <motion.div
+                    key={newPasswordStrength.strength + "-pwnet"}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-[9px] font-medium text-[#06d6a0]"
+                  >
+                    <div className="flex items-center pt-1">
+                      <p>
+                        Verificado <br /> por PWNET
+                      </p>
+                      <ShieldCheck className="ml-1" />
+                    </div>
+                  </motion.div>
+                )}
+
+              {newPasswordStrength &&
+                pwLoading === true &&
+                (newPasswordStrength.strength === "Buena" ||
+                  newPasswordStrength.strength === "Fuerte") && (
+                  <motion.div
+                    key={newPasswordStrength.strength + "-loading"}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-[9px] font-medium text-[#118ab2]"
+                  >
+                    <div className="flex items-center pt-1">
+                      <Loader2 className="animate-spin" />
+                    </div>
+                  </motion.div>
+                )}
+
+              {/* Botón mostrar/ocultar */}
+              <button
+                type="button"
+                onClick={() => setEyeNewPassword(!eyeNewPassword)}
+                className="cursor-pointer text-zinc-500 hover:text-zinc-700"
+              >
+                <AnimatePresence mode="wait">
+                  {eyeNewPassword ? (
                     <motion.div
-                      key={newPasswordStrength.strength}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className={`mt-1 text-xs font-medium text-[#f77f00]`}
+                      key="eye-closed"
+                      initial={{ opacity: 0, rotate: -10 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: 10 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center text-[9px] pt-1">
-                        <p>No segura</p>
-                        <ShieldAlert />
-                      </div>
+                      <EyeClosed />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="eye"
+                      initial={{ opacity: 0, rotate: 10 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Eye />
                     </motion.div>
                   )}
-                {newPasswordStrength &&
-                  pwnet === true &&
-                  (newPasswordStrength.strength === "Buena" ||
-                    newPasswordStrength.strength === "Fuerte") &&
-                  pwLoading === false && (
-                    <motion.div
-                      key={newPasswordStrength.strength}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className={`mt-1 text-xs font-medium text-[#06d6a0]`}
-                    >
-                      <div className="flex items-center text-[9px] pt-1">
-                        <p>
-                          Verificado <br /> por PWNET
-                        </p>
-                        <ShieldCheck />
-                      </div>
-                    </motion.div>
-                  )}
-                {newPasswordStrength &&
-                  pwLoading === true &&
-                  (newPasswordStrength.strength === "Buena" ||
-                    newPasswordStrength.strength === "Fuerte") && (
-                    <motion.div
-                      key={newPasswordStrength.strength}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className={`mt-1 text-xs font-medium text-[#118ab2]`}
-                    >
-                      <div className="flex items-center text-[9px] pt-1">
-                        <Loader2 className="animate-spin" />
-                      </div>
-                    </motion.div>
-                  )}
-              </div>
+                </AnimatePresence>
+              </button>
             </div>
           </div>
+
           <div className="mt-5">
             <Label>Confirmar nueva contraseña</Label>
             <div className="relative mt-1">
-              <Input
-                className="pr-10 rounded-full"
-                type="password"
-                {...register("rePassword", {
-                  validate: (value) =>
-                    value === newPassword || "Las contraseñas no coinciden",
-                })}
-                aria-invalid={errors.rePassword ? "true" : "false"}
-              />
-              <div className="absolute -translate-y-1/2 right-2 top-1/2">
+              {/* Campo Input con animación */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={eyeRePassword ? "text" : "password"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Input
+                    className="pr-10 rounded-full"
+                    type={eyeRePassword ? "text" : "password"}
+                    {...register("rePassword", {
+                      validate: (value) =>
+                        value === newPassword || "Las contraseñas no coinciden",
+                    })}
+                    aria-invalid={errors.rePassword ? "true" : "false"}
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Íconos y botón para mostrar/ocultar */}
+              <div className="absolute flex items-center gap-2 -translate-y-1/2 right-2 top-2/4">
                 {rePassword && !errors.rePassword && (
                   <div title="Contraseña confirmada">
                     <CircleCheck className="text-[#06d6a0]" />
@@ -321,8 +430,41 @@ export function ChangePasswordComponent() {
                     <CircleX className="text-[#f77f00]" />
                   </div>
                 )}
+
+                {/* Botón mostrar/ocultar */}
+                <button
+                  type="button"
+                  onClick={() => setEyeRePassword(!eyeRePassword)}
+                  className="cursor-pointer text-zinc-500 hover:text-zinc-700"
+                >
+                  <AnimatePresence mode="wait">
+                    {eyeRePassword ? (
+                      <motion.div
+                        key="eye-closed"
+                        initial={{ opacity: 0, rotate: -10 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: 10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <EyeClosed />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="eye"
+                        initial={{ opacity: 0, rotate: 10 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Eye />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </button>
               </div>
             </div>
+
+            {/* Mensaje de error */}
             <div className="relative h-5 mb-1 overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.rePassword && (
@@ -341,6 +483,7 @@ export function ChangePasswordComponent() {
               </AnimatePresence>
             </div>
           </div>
+
           <div className="flex flex-col justify-center w-full mt-2">
             <Button
               type="submit"
