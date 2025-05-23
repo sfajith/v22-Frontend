@@ -13,11 +13,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { AlertCircle, CheckIcon, Loader2, XIcon } from "lucide-react";
+import {
+  AlertCircle,
+  CheckIcon,
+  Loader2,
+  ShieldAlert,
+  ShieldCheck,
+  XIcon,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { validatePasswordStrength } from "../../../../shared/validatePasswordStrength";
-import { passwordValidation } from "../../features/auth/authService";
 import { toast } from "sonner";
+import { passwordValidation } from "../../features/auth/authService";
 
 //unificacion de clases condicionales
 function cn(...classes: (string | false | null | undefined)[]) {
@@ -68,6 +75,49 @@ export function ChangePasswordComponent() {
     await handlerChangePassword(data.password, data.newPassword);
   };
 
+  //verificacion de la contraseña via PWNET
+  const passwordPwnetValidation = async (newPassword: string) => {
+    try {
+      toast.dismiss();
+      toast.loading("Verificando contraseña");
+      const payload = {
+        password: newPassword,
+      };
+      const response = await passwordValidation(payload);
+
+      if (response.success) {
+        toast.dismiss();
+        toast.success("contraseña revisada por PWNET");
+      }
+    } catch (error) {
+      toast.dismiss();
+      toast.error(
+        "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
+      );
+    }
+  };
+
+  //useEffect para manejar la validacion de newPassword PWNET
+  useEffect(() => {
+    if (!newPassword) {
+      return;
+    }
+    if (
+      newPassword.length < 6 ||
+      newPassword.length > 64 ||
+      newPasswordStrength?.strength === "Débil" ||
+      newPasswordStrength?.strength === "Media"
+    ) {
+      return;
+    }
+
+    const passwordHandler = setTimeout(() => {
+      passwordPwnetValidation(newPassword);
+    }, 700);
+
+    return () => clearTimeout(passwordHandler);
+  }, [newPassword, newPasswordStrength?.strength]);
+
   //vigilante de form
   useEffect(() => {
     if (password) {
@@ -92,7 +142,8 @@ export function ChangePasswordComponent() {
     password?.length > 0 &&
     newPassword.length > 0 &&
     rePassword?.length > 0 &&
-    newPasswordStrength?.strength !== "Débil";
+    newPasswordStrength?.strength !== "Débil" &&
+    newPasswordStrength?.strength !== "Media";
 
   return (
     <Dialog>
@@ -174,17 +225,40 @@ export function ChangePasswordComponent() {
                 <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200"></div>
               )}
               <div className="absolute -translate-y-1/2 right-2 top-1/3">
-                {newPasswordStrength && (
-                  <motion.p
-                    key={newPasswordStrength.strength}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    className={`mt-1 text-xs font-medium ${newPasswordStrength.color}`}
-                  >
-                    {newPasswordStrength.strength}
-                  </motion.p>
-                )}
+                {newPasswordStrength &&
+                  (newPasswordStrength.strength === "Débil" ||
+                    newPasswordStrength.strength === "Media") && (
+                    <motion.p
+                      key={newPasswordStrength.strength}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className={`mt-1 text-xs font-medium text-[#f77f00]`}
+                    >
+                      <div className="flex items-center text-[9px] pt-1">
+                        <p>No segura</p>
+                        <ShieldAlert />
+                      </div>
+                    </motion.p>
+                  )}
+                {newPasswordStrength &&
+                  (newPasswordStrength.strength === "Buena" ||
+                    newPasswordStrength.strength === "Fuerte") && (
+                    <motion.p
+                      key={newPasswordStrength.strength}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className={`mt-1 text-xs font-medium text-[#06d6a0]`}
+                    >
+                      <div className="flex items-center text-[9px] pt-1">
+                        <p>
+                          Verificado <br /> por PWNET
+                        </p>
+                        <ShieldCheck />
+                      </div>
+                    </motion.p>
+                  )}
               </div>
             </div>
           </div>

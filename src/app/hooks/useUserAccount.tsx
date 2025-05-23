@@ -42,7 +42,6 @@ export function useUserAccount() {
 
     try {
       const response = await changePassword(payload);
-      console.log("onchange password");
 
       if (response.success) {
         setEvento("success");

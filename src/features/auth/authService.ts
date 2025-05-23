@@ -207,7 +207,7 @@ export async function deleteAccount(payload: deleteType) {
     {
       method: "POST",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
         Authorization: `Bearer ${payload.token}`,
       },
       body: JSON.stringify(payload.body),
@@ -239,7 +239,7 @@ export async function verifyAccount(payload: VerifyPayload) {
     {
       method: "GET",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
       },
     }
   );
@@ -270,7 +270,7 @@ export async function resendVerification(payload: ResendPayload) {
     {
       method: "POST",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     }
@@ -302,7 +302,7 @@ export async function forgotPassword(payload: ForgotPayload) {
     {
       method: "POST",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     }
@@ -333,7 +333,7 @@ export async function restorePassword(payload: RestorePayload) {
     {
       method: "POST",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ password: payload.password }),
     }
@@ -362,7 +362,7 @@ export async function usernameValidation(payload: PayloadUsernameValidation) {
     {
       method: "POST",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     }
@@ -392,7 +392,7 @@ export async function emailValidation(payload: PayloadEmailValidation) {
     {
       method: "POST",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     }
@@ -408,7 +408,7 @@ export async function emailValidation(payload: PayloadEmailValidation) {
 
 //llama el backend para validar la contraseña via pwned
 type PayloadPasswordlValidation = {
-  email: string;
+  password: string;
 };
 type passwordValidationSuccess = {
   success: string;
@@ -422,7 +422,7 @@ export async function passwordValidation(payload: PayloadPasswordlValidation) {
     {
       method: "POST",
       headers: {
-        "content-Type": "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     }
