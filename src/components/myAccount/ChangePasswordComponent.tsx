@@ -16,6 +16,8 @@ import { Label } from "../ui/label";
 import {
   AlertCircle,
   CheckIcon,
+  CircleCheck,
+  CircleX,
   Loader2,
   ShieldAlert,
   ShieldCheck,
@@ -72,33 +74,44 @@ export function ChangePasswordComponent() {
     if (data.newPassword !== data.rePassword) {
       return toast.error("Las contraseñas no coinciden");
     }
+    if (!isFormValid) {
+      return toast.error("Datos invalidos");
+    }
     await handlerChangePassword(data.password, data.newPassword);
   };
 
   //verificacion de la contraseña via PWNET
-  const passwordPwnetValidation = async (newPassword: string) => {
-    try {
-      toast.dismiss();
-      toast.loading("Verificando contraseña");
-      const payload = {
-        password: newPassword,
-      };
-      const response = await passwordValidation(payload);
+  const [pwnet, setPwnet] = useState<boolean | null>(null);
+  const [pwLoading, setPwLoading] = useState<boolean | null>(null);
+  const passwordPwnetValidation = (newPassword: string) => {
+    setPwnet(null);
+    setTimeout(async () => {
+      try {
+        const payload = {
+          password: newPassword,
+        };
+        const response = await passwordValidation(payload);
 
-      if (response.success) {
+        if (response.success) {
+          setPwLoading(false);
+          toast.dismiss();
+          toast.success("contraseña revisada por PWNET");
+          setPwnet(true);
+        }
+      } catch (error) {
         toast.dismiss();
-        toast.success("contraseña revisada por PWNET");
+        toast.error(
+          "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
+        );
+        setPwLoading(false);
+        setPwnet(false);
       }
-    } catch (error) {
-      toast.dismiss();
-      toast.error(
-        "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
-      );
-    }
+    }, 400);
   };
 
   //useEffect para manejar la validacion de newPassword PWNET
   useEffect(() => {
+    setPwLoading(null);
     if (!newPassword) {
       return;
     }
@@ -110,7 +123,9 @@ export function ChangePasswordComponent() {
     ) {
       return;
     }
-
+    toast.dismiss();
+    setPwLoading(true);
+    toast.loading("Verificando contraseña");
     const passwordHandler = setTimeout(() => {
       passwordPwnetValidation(newPassword);
     }, 700);
@@ -143,7 +158,8 @@ export function ChangePasswordComponent() {
     newPassword.length > 0 &&
     rePassword?.length > 0 &&
     newPasswordStrength?.strength !== "Débil" &&
-    newPasswordStrength?.strength !== "Media";
+    newPasswordStrength?.strength !== "Media" &&
+    pwnet === true;
 
   return (
     <Dialog>
@@ -226,9 +242,11 @@ export function ChangePasswordComponent() {
               )}
               <div className="absolute -translate-y-1/2 right-2 top-1/3">
                 {newPasswordStrength &&
-                  (newPasswordStrength.strength === "Débil" ||
-                    newPasswordStrength.strength === "Media") && (
-                    <motion.p
+                  (newPasswordStrength.strength === "Buena" ||
+                    newPasswordStrength.strength === "Fuerte") &&
+                  pwLoading === false &&
+                  pwnet === false && (
+                    <motion.div
                       key={newPasswordStrength.strength}
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -239,12 +257,14 @@ export function ChangePasswordComponent() {
                         <p>No segura</p>
                         <ShieldAlert />
                       </div>
-                    </motion.p>
+                    </motion.div>
                   )}
                 {newPasswordStrength &&
+                  pwnet === true &&
                   (newPasswordStrength.strength === "Buena" ||
-                    newPasswordStrength.strength === "Fuerte") && (
-                    <motion.p
+                    newPasswordStrength.strength === "Fuerte") &&
+                  pwLoading === false && (
+                    <motion.div
                       key={newPasswordStrength.strength}
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -257,7 +277,23 @@ export function ChangePasswordComponent() {
                         </p>
                         <ShieldCheck />
                       </div>
-                    </motion.p>
+                    </motion.div>
+                  )}
+                {newPasswordStrength &&
+                  pwLoading === true &&
+                  (newPasswordStrength.strength === "Buena" ||
+                    newPasswordStrength.strength === "Fuerte") && (
+                    <motion.div
+                      key={newPasswordStrength.strength}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      className={`mt-1 text-xs font-medium text-[#118ab2]`}
+                    >
+                      <div className="flex items-center text-[9px] pt-1">
+                        <Loader2 className="animate-spin" />
+                      </div>
+                    </motion.div>
                   )}
               </div>
             </div>
@@ -277,12 +313,12 @@ export function ChangePasswordComponent() {
               <div className="absolute -translate-y-1/2 right-2 top-1/2">
                 {rePassword && !errors.rePassword && (
                   <div title="Contraseña confirmada">
-                    <CheckIcon className="text-green-600" />
+                    <CircleCheck className="text-[#06d6a0]" />
                   </div>
                 )}
                 {rePassword && errors.rePassword && (
                   <div title="Las contraseñas no coinciden">
-                    <XIcon className="text-orange-500" />
+                    <CircleX className="text-[#f77f00]" />
                   </div>
                 )}
               </div>
