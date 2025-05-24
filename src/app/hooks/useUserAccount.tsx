@@ -71,19 +71,22 @@ export function useUserAccount() {
     }
   };
 
-  const handlerDeleteUserAcount = async () => {
+  const handlerDeleteUserAcount = async (password: string) => {
+    toast.loading("Verificando información...");
     const token = localStorage.getItem("token");
     if (auth.user) {
       const payload = {
         token,
         username: auth.user.username,
         body: {
-          password: form.password,
+          password,
         },
       };
       try {
         const response = await deleteAccount(payload);
         if (response.success) {
+          toast.dismiss();
+          toast.warning("cuenta eliminada con exito!");
           setForm({ password: "", newPassword: "", rePassword: "" });
           dispatch(globalSuccess(response.success));
           setTimeout(() => {
@@ -92,13 +95,14 @@ export function useUserAccount() {
           }, 2000);
         }
       } catch (error) {
+        toast.dismiss();
+
         setForm({ password: "", newPassword: "", rePassword: "" });
-        dispatch(
-          globalError(
-            error instanceof Error
-              ? error.message
-              : "No se pudo eliminar la cuenta"
-          )
+
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "No se pudo eliminar la cuenta"
         );
         setTimeout(() => {
           dispatch(disableError());
