@@ -1,4 +1,7 @@
-import { registerUser } from "../../features/auth/authService";
+import {
+  passwordValidation,
+  registerUser,
+} from "../../features/auth/authService";
 import {
   usernameValidation,
   emailValidation,
@@ -24,8 +27,12 @@ import {
   UserRoundCheck,
   UserRoundX,
   AlertCircle,
-  CheckIcon,
-  XIcon,
+  ShieldAlert,
+  ShieldCheck,
+  EyeClosed,
+  Eye,
+  CircleCheck,
+  CircleX,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -62,6 +69,10 @@ export default function RegisterDialog() {
   const [successName, setSuccessName] = useState<string | null>(null);
   const [errorName, setErrorName] = useState<string | null>(null);
   const [validatingName, setValidatingName] = useState<boolean>(false);
+
+  //Estados para el manejo de mostrar oculat contraseñas
+  const [eyePassword, setEyePassword] = useState<boolean>(false);
+  const [eyeRePassword, setEyeRePassword] = useState<boolean>(false);
 
   //llamada al backend para verificar el username
   const usernameValidationHandler = async () => {
@@ -187,18 +198,6 @@ export default function RegisterDialog() {
     bgColor: string;
   } | null>(null);
 
-  //modelo de comprobacion para permitir el evento submit
-  const isFormValid =
-    !errors.username &&
-    !errors.email &&
-    !errors.password &&
-    !errors.rePassword &&
-    username?.length > 0 &&
-    email?.length > 0 &&
-    password?.length > 0 &&
-    rePassword?.length > 0 &&
-    passwordStrength?.strength !== "Débil";
-
   //estados para menejo del registro
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -241,6 +240,73 @@ export default function RegisterDialog() {
     if (password) trigger("password");
     if (rePassword) trigger("rePassword");
   }, [password, rePassword]);
+
+  //verificacion de la contraseña via PWNET
+  const [pwnet, setPwnet] = useState<boolean | null>(null);
+  const [pwLoading, setPwLoading] = useState<boolean | null>(null);
+  const passwordPwnetValidation = (newPassword: string) => {
+    setPwnet(null);
+    setTimeout(async () => {
+      try {
+        const payload = {
+          password: newPassword,
+        };
+        const response = await passwordValidation(payload);
+
+        if (response.success) {
+          setPwLoading(false);
+          toast.dismiss();
+          toast.success("contraseña revisada por PWNET");
+          setPwnet(true);
+        }
+      } catch (error) {
+        toast.dismiss();
+        toast.error(
+          "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
+        );
+        setPwLoading(false);
+        setPwnet(false);
+      }
+    }, 400);
+  };
+
+  //useEffect para manejar la validacion de newPassword PWNET
+  useEffect(() => {
+    setPwLoading(null);
+    if (!password) {
+      return;
+    }
+    if (
+      password.length < 6 ||
+      password.length > 64 ||
+      passwordStrength?.strength === "Débil" ||
+      passwordStrength?.strength === "Media"
+    ) {
+      return;
+    }
+    toast.dismiss();
+    setPwLoading(true);
+    toast.loading("Verificando contraseña");
+    const passwordHandler = setTimeout(() => {
+      passwordPwnetValidation(password);
+    }, 700);
+
+    return () => clearTimeout(passwordHandler);
+  }, [password, passwordStrength?.strength]);
+
+  //modelo de comprobacion para permitir el evento submit
+  const isFormValid =
+    !errors.username &&
+    !errors.email &&
+    !errors.password &&
+    !errors.rePassword &&
+    username?.length > 0 &&
+    email?.length > 0 &&
+    password?.length > 0 &&
+    rePassword?.length > 0 &&
+    passwordStrength?.strength !== "Débil" &&
+    passwordStrength?.strength !== "Media" &&
+    pwnet === true;
 
   return (
     <Dialog>
@@ -286,12 +352,12 @@ export default function RegisterDialog() {
                 )}
                 {!validatingName && successName && (
                   <div title="Nombre de usuario disponible">
-                    <UserRoundCheck className="text-green-600" />
+                    <UserRoundCheck className="text-[#06d6a0]" />
                   </div>
                 )}
                 {!validatingName && errorName && (
                   <div title="Este nombre ya está en uso">
-                    <UserRoundX className="text-orange-500 " />
+                    <UserRoundX className="text-[#f77f00]" />
                   </div>
                 )}
               </div>
@@ -307,7 +373,7 @@ export default function RegisterDialog() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
                   >
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{errors.username.message}</span>
@@ -349,12 +415,12 @@ export default function RegisterDialog() {
                 )}
                 {!validatingEmail && successEmail && (
                   <div title="Correo disponible">
-                    <MailCheck className="text-green-600" />
+                    <MailCheck className="text-[#06d6a0]" />
                   </div>
                 )}
                 {!validatingEmail && errorEmail && (
                   <div title="Este correo ya está en uso">
-                    <MailX className="text-orange-500" />
+                    <MailX className="text-[#f77f00]" />
                   </div>
                 )}
               </div>
@@ -370,7 +436,7 @@ export default function RegisterDialog() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
                   >
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{errors.email.message}</span>
@@ -385,21 +451,31 @@ export default function RegisterDialog() {
             <Label>Contraseña</Label>
 
             <div className="relative">
-              <Input
-                className="pr-10 rounded-full"
-                type="password"
-                {...register("password", {
-                  required: "La contraseña es obligatoria",
-                  minLength: {
-                    value: 6,
-                    message: "Mínimo 6 caracteres",
-                  },
-                  maxLength: {
-                    value: 64,
-                    message: "Máximo 64 caracteres",
-                  },
-                })}
-              />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={eyePassword ? "text" : "password"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Input
+                    className="pr-10 rounded-full"
+                    type={eyePassword ? "text" : "password"}
+                    {...register("password", {
+                      required: "La contraseña es obligatoria",
+                      minLength: {
+                        value: 6,
+                        message: "Mínimo 6 caracteres",
+                      },
+                      maxLength: {
+                        value: 64,
+                        message: "Máximo 64 caracteres",
+                      },
+                    })}
+                  />
+                </motion.div>
+              </AnimatePresence>
               <div className="w-full px-4 mt-1">
                 {passwordStrength ? (
                   <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200">
@@ -416,18 +492,93 @@ export default function RegisterDialog() {
                 ) : (
                   <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200"></div>
                 )}
-                <div className="absolute -translate-y-1/2 right-2 top-1/3">
-                  {passwordStrength && (
-                    <motion.p
-                      key={passwordStrength.strength}
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -5 }}
-                      className={`mt-1 text-xs font-medium ${passwordStrength.color}`}
-                    >
-                      {passwordStrength.strength}
-                    </motion.p>
-                  )}
+                <div className="absolute flex items-center -translate-y-1/2 right-2 top-2/5">
+                  {passwordStrength &&
+                    (passwordStrength.strength === "Buena" ||
+                      passwordStrength.strength === "Fuerte") &&
+                    pwLoading === false &&
+                    pwnet === false && (
+                      <motion.div
+                        key={passwordStrength.strength + "-alert"}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        className="text-[9px] font-medium text-[#f77f00]"
+                      >
+                        <div className="flex items-center pt-1">
+                          <p>No segura</p>
+                          <ShieldAlert className="ml-1" />
+                        </div>
+                      </motion.div>
+                    )}
+
+                  {passwordStrength &&
+                    pwnet === true &&
+                    (passwordStrength.strength === "Buena" ||
+                      passwordStrength.strength === "Fuerte") &&
+                    pwLoading === false && (
+                      <motion.div
+                        key={passwordStrength.strength + "-pwnet"}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        className="text-[9px] font-medium text-[#06d6a0]"
+                      >
+                        <div className="flex items-center pt-1">
+                          <p>
+                            Verificado <br /> por PWNET
+                          </p>
+                          <ShieldCheck className="ml-1" />
+                        </div>
+                      </motion.div>
+                    )}
+
+                  {passwordStrength &&
+                    pwLoading === true &&
+                    (passwordStrength.strength === "Buena" ||
+                      passwordStrength.strength === "Fuerte") && (
+                      <motion.div
+                        key={passwordStrength.strength + "-loading"}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -5 }}
+                        className="text-[9px] font-medium text-[#118ab2]"
+                      >
+                        <div className="flex items-center pt-1">
+                          <Loader2 className="animate-spin" />
+                        </div>
+                      </motion.div>
+                    )}
+                  {/* Botón mostrar/ocultar */}
+                  <button
+                    type="button"
+                    onClick={() => setEyePassword(!eyePassword)}
+                    className="cursor-pointer text-zinc-500 hover:text-zinc-700"
+                  >
+                    <AnimatePresence mode="wait">
+                      {eyePassword ? (
+                        <motion.div
+                          key="eye-closed"
+                          initial={{ opacity: 0, rotate: -10 }}
+                          animate={{ opacity: 1, rotate: 0 }}
+                          exit={{ opacity: 0, rotate: 10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <EyeClosed />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="eye"
+                          initial={{ opacity: 0, rotate: 10 }}
+                          animate={{ opacity: 1, rotate: 0 }}
+                          exit={{ opacity: 0, rotate: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </button>
                 </div>
               </div>
             </div>
@@ -440,7 +591,7 @@ export default function RegisterDialog() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
                   >
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{errors.password.message}</span>
@@ -451,31 +602,77 @@ export default function RegisterDialog() {
           </div>
 
           {/* Confirm Password */}
-          <div className="grid items-center w-full max-w-sm gap-1">
-            <Label>Confirmar contraseña</Label>
-            <div className="relative">
-              <Input
-                className="pr-10 rounded-full"
-                type="password"
-                {...register("rePassword", {
-                  required: "Confirma la contraseña",
-                  validate: (value) =>
-                    value === password || "Las contraseñas no coinciden",
-                })}
-              />
-              <div className="absolute -translate-y-1/2 right-2 top-1/2">
+          <div className="mt-5">
+            <Label>Confirmar nueva contraseña</Label>
+            <div className="relative mt-1">
+              {/* Campo Input con animación */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={eyeRePassword ? "text" : "password"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <Input
+                    className="pr-10 rounded-full"
+                    type={eyeRePassword ? "text" : "password"}
+                    {...register("rePassword", {
+                      validate: (value) =>
+                        value === password || "Las contraseñas no coinciden",
+                    })}
+                    aria-invalid={errors.rePassword ? "true" : "false"}
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Íconos y botón para mostrar/ocultar */}
+              <div className="absolute flex items-center gap-2 -translate-y-1/2 right-2 top-2/4">
                 {rePassword && !errors.rePassword && (
                   <div title="Contraseña confirmada">
-                    <CheckIcon className="text-green-600" />
+                    <CircleCheck className="text-[#06d6a0]" />
                   </div>
                 )}
                 {rePassword && errors.rePassword && (
                   <div title="Las contraseñas no coinciden">
-                    <XIcon className="text-orange-500" />
+                    <CircleX className="text-[#f77f00]" />
                   </div>
                 )}
+
+                {/* Botón mostrar/ocultar */}
+                <button
+                  type="button"
+                  onClick={() => setEyeRePassword(!eyeRePassword)}
+                  className="cursor-pointer text-zinc-500 hover:text-zinc-700"
+                >
+                  <AnimatePresence mode="wait">
+                    {eyeRePassword ? (
+                      <motion.div
+                        key="eye-closed"
+                        initial={{ opacity: 0, rotate: -10 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: 10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <EyeClosed />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="eye"
+                        initial={{ opacity: 0, rotate: 10 }}
+                        animate={{ opacity: 1, rotate: 0 }}
+                        exit={{ opacity: 0, rotate: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Eye />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </button>
               </div>
             </div>
+
+            {/* Mensaje de error */}
             <div className="relative h-5 mb-1 overflow-hidden">
               <AnimatePresence mode="wait">
                 {errors.rePassword && (
@@ -485,7 +682,7 @@ export default function RegisterDialog() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-orange-500"
+                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
                   >
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{errors.rePassword.message}</span>
