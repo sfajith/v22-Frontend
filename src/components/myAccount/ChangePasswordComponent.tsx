@@ -166,7 +166,7 @@ export function ChangePasswordComponent() {
 
   return (
     <Dialog>
-      <DialogTrigger className="w-full text-left">
+      <DialogTrigger className="w-full mt-5 text-center cursor-pointer text-muted-foreground">
         Cambiar Contraseña
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px]">

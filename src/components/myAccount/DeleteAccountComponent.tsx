@@ -32,6 +32,7 @@ type Inputs = {
 };
 
 export function DeleteAccountComponent() {
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [eyePassword, setEyePassword] = useState<boolean>(false);
   const { handlerDeleteUserAcount } = useUserAccount();
   const {
@@ -50,8 +51,8 @@ export function DeleteAccountComponent() {
   //trigger de validacion fortaleza de contraseña
 
   return (
-    <Dialog>
-      <DialogTrigger className="w-full text-left text-red-400">
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger className="w-full mt-5 text-center text-red-400 cursor-pointer">
         Eliminar Cuenta
       </DialogTrigger>
       <DialogContent>
@@ -156,7 +157,10 @@ export function DeleteAccountComponent() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="cursor-pointer">
+                <AlertDialogCancel
+                  className="cursor-pointer"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Cancelar
                 </AlertDialogCancel>
                 <AlertDialogAction asChild>
