@@ -1,96 +1,111 @@
 import { useState } from "react";
 import { forgotPassword } from "../features/auth/authService";
-import {
-  globalError,
-  disableError,
-  globalSuccess,
-  globalLoading,
-  disableLoading,
-} from "../features/auth/authSlice";
-import { useAppDispatch } from "../app/hooks";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 function ForgotPassword() {
   const [email, setEmail] = useState<string>("");
   const [good, setGood] = useState<boolean>(false);
-  const dispatch = useAppDispatch();
+  const [evento, setEvento] = useState<string | null>(null);
 
   const resendHandlder = async () => {
+    toast.dismiss();
+    setEvento("loading");
     const payload = {
       email,
     };
-    try {
-      dispatch(globalLoading());
-      const response = await forgotPassword(payload);
-      if (response.success) {
-        console.log(response.success);
-        dispatch(disableLoading());
-        setGood(true);
-        dispatch(globalSuccess(response.success));
-      }
-    } catch (error) {
-      dispatch(disableLoading());
-      dispatch(
-        globalError(
+    setTimeout(async () => {
+      try {
+        const response = await forgotPassword(payload);
+        if (response.success) {
+          toast.dismiss();
+          `El enlace para recuperar tu cuenta se envió a tu correo ${email}`;
+          setEvento(null);
+          setGood(true);
+        }
+      } catch (error) {
+        setEvento(null);
+        toast.dismiss();
+        toast.error(
           error instanceof Error
             ? error.message
             : "No se pudo recuperar la contraseña"
-        )
-      );
-      setTimeout(() => {
-        dispatch(disableError());
-      }, 5000);
-    }
+        );
+      }
+    }, 500);
   };
   return (
     <>
       {!good ? (
-        <div className="flex flex-col items-center justify-center w-full h-[calc(100vh-94px)]">
-          <h3 className="text-2xl font-bold text-[#751B80] text-center">
+        <div className="flex flex-col items-center justify-center w-full h-[calc(100vh-94px)] px-4">
+          <h3 className="text-3xl md:text-4xl font-extrabold text-[#751B80] text-center tracking-tight leading-tight mb-6">
             Recupera tu contraseña
           </h3>
-          <div>
-            <form
-              className="rounded-lg pt-2 pb-4"
-              onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
-                e.preventDefault();
-                resendHandlder();
-              }}
-            >
-              <div className="formDiv">
-                <label
-                  className="text-lg text-muted-foreground"
-                  htmlFor="newPassword"
-                >
-                  Escribe el correo electronico de tu cuenta
-                </label>
-                <input
-                  required
-                  className="bg-white"
-                  type="email"
-                  name="email"
-                  id="email"
-                  placeholder="tucorreo@ejemplo.com"
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setEmail(e.target.value);
-                  }}
-                />
-              </div>
+          <form
+            className="w-full max-w-md p-6 space-y-4 bg-white shadow-lg rounded-2xl"
+            onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+              e.preventDefault();
+              resendHandlder();
+            }}
+          >
+            <div className="flex flex-col">
+              <label
+                htmlFor="email"
+                className="mb-1 text-base font-medium text-zinc-600"
+              >
+                Escribe el correo electrónico de tu cuenta
+              </label>
+              <input
+                required
+                type="email"
+                id="email"
+                name="email"
+                placeholder="tucorreo@ejemplo.com"
+                className="px-4 py-2 border border-zinc-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#751B80]"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  setEmail(e.target.value);
+                }}
+              />
+            </div>
 
-              <div className="formDiv">
-                <button className="bg-gradient-mascoti buttom-mascoti">
-                  Recuperar contraseña
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="pt-2">
+              <Button
+                type="submit"
+                className="cursor-pointer w-full py-2 px-4 text-white text-lg font-semibold tracking-tight rounded-full bg-gradient-to-r from-[#751B80] to-[#A84ACF] transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={evento === "loading"}
+              >
+                {evento === "loading" ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Recuperar contraseña
+                  </>
+                ) : (
+                  "Cambiar contraseña"
+                )}
+              </Button>
+            </div>
+          </form>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center w-full h-[calc(100vh-94px)]">
-          <h3 className="text-2xl font-bold text-[#751B80] text-center">
-            Revisa tu bandeja de entrada de ✉️ {email} <br /> ya puedes cerrar
-            esta ventana.
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="flex flex-col items-center justify-center w-full h-[calc(100vh-94px)] px-4"
+        >
+          <h3 className="text-center text-3xl sm:text-4xl font-semibold tracking-tight text-[#751B80] leading-snug max-w-xl">
+            Revisa tu bandeja de entrada{" "}
+            <span className="inline-block">✉️</span>
+            <br />
+            <span className="text-[#A84ACF] font-bold">{email}</span>
+            <br />
+            <span className="block mt-2 text-lg font-normal text-zinc-600">
+              Ya puedes cerrar esta ventana.
+            </span>
           </h3>
-        </div>
+        </motion.div>
       )}
     </>
   );
