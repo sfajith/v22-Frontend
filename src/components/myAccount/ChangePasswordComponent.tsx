@@ -177,7 +177,9 @@ export function ChangePasswordComponent() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
-          <Label>Contraseña</Label>
+          <Label className="mb-1 text-base font-medium text-zinc-600">
+            Contraseña
+          </Label>
           <div className="relative mt-1">
             <AnimatePresence mode="wait">
               <motion.div
@@ -254,7 +256,9 @@ export function ChangePasswordComponent() {
             </AnimatePresence>
           </div>
 
-          <Label>Nueva contraseña</Label>
+          <Label className="mb-1 text-base font-medium text-zinc-600">
+            Nueva contraseña
+          </Label>
           <div className="relative mt-1">
             {/* Input */}
             <AnimatePresence mode="wait">
@@ -395,7 +399,9 @@ export function ChangePasswordComponent() {
           </div>
 
           <div className="mt-5">
-            <Label>Confirmar nueva contraseña</Label>
+            <Label className="mb-1 text-base font-medium text-zinc-600">
+              Confirmar nueva contraseña
+            </Label>
             <div className="relative mt-1">
               {/* Campo Input con animación */}
               <AnimatePresence mode="wait">

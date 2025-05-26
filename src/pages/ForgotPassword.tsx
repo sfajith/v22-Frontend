@@ -101,7 +101,7 @@ function ForgotPassword() {
                     Recuperar contraseña
                   </>
                 ) : (
-                  "Cambiar contraseña"
+                  "Recuperar contraseña"
                 )}
               </Button>
             </div>

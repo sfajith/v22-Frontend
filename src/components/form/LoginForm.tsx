@@ -92,6 +92,11 @@ export default function LoginDialog() {
     navigate("/forgot-password"); // <-- Redirige
   };
 
+  const handleResendVerification = () => {
+    setOpen(false); // <-- Cierra el diálogo
+    navigate("/resend-email"); // <-- Redirige
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -141,13 +146,23 @@ export default function LoginDialog() {
                 className="rounded-full"
               />
             </div>
-
-            <button
-              onClick={handleForgotPassword}
-              className="text-xs font-medium underline cursor-pointer text-muted-foreground"
-            >
-              Olvidé mi contraseña
-            </button>
+            <div className="flex flex-col justify-start w-full gap-1">
+              <button
+                onClick={handleForgotPassword}
+                className="text-xs font-medium text-left underline cursor-pointer text-muted-foreground"
+              >
+                Olvidé mi contraseña
+              </button>
+              {errorMessage ===
+                "Tu cuenta aún no ha sido verificada. Por favor revisa tu correo o solicita un nuevo enlace." && (
+                <button
+                  className="text-xs font-medium text-left underline cursor-pointer text-muted-foreground"
+                  onClick={handleResendVerification}
+                >
+                  Reenviar correo de verificación
+                </button>
+              )}
+            </div>
             {errorMessage && (
               <p className="text-sm font-medium text-red-500">{errorMessage}</p>
             )}
@@ -158,7 +173,7 @@ export default function LoginDialog() {
               aria-disabled={!isFormValid || isLoading}
               disabled={!isFormValid || isLoading}
               onClick={handleLogin}
-              className="flex items-center justify-center w-full gap-2 rounded-full cursor-pointer bg-gradient-mascoti"
+              className="w-full text-xl tracking-tight text-white transition-opacity rounded-full opacity-50 cursor-not-allowed bg-gradient-mascoti enabled:opacity-100 enabled:cursor-pointer"
             >
               {isLoading ? (
                 <>
