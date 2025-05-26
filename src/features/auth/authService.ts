@@ -2,6 +2,7 @@ import { Link } from "../links/linkTypes";
 export type LoginPayload = {
   email: string;
   password: string;
+  gToken: string;
 };
 
 export type registerPayload = {

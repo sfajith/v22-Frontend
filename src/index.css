@@ -25,7 +25,9 @@ header {
   padding-top: 10px;
   padding-bottom: 10px;
 }
-
+.grecaptcha-badge {
+  z-index: 60 !important;
+}
 .logoContainer {
   align-content: center;
 }
@@ -50,14 +52,14 @@ header {
 }
 
 .formDiv {
-  @apply flex flex-col text-xs px-2 mt-2 text-gray-900;
+  @apply flex flex-col px-2 mt-2 text-xs text-gray-900;
 }
 .formDiv input {
-  @apply border rounded-lg px-2 py-1;
+  @apply px-2 py-1 border rounded-lg;
 }
 
 .buttom-mascoti {
-  @apply border rounded-xl text-white text-base flex justify-center cursor-pointer active:scale-105;
+  @apply flex justify-center text-base text-white border cursor-pointer rounded-xl active:scale-105;
 }
 
 @layer utilities {

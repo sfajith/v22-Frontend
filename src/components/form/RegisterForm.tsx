@@ -2,6 +2,7 @@ import {
   passwordValidation,
   registerUser,
 } from "../../features/auth/authService";
+import ReCAPTCHA from "react-google-recaptcha";
 import {
   usernameValidation,
   emailValidation,
@@ -19,7 +20,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "../ui/input";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Loader2,
   MailCheck,
@@ -50,6 +51,8 @@ function cn(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
+const siteKey: string = import.meta.env.VITE_RECAPTCHA_SITE_KEY!;
+
 export default function RegisterDialog() {
   const {
     register,
@@ -65,6 +68,8 @@ export default function RegisterDialog() {
   const email = watch("email");
   const rePassword = watch("rePassword");
 
+  const recaptchaRef = useRef<InstanceType<typeof ReCAPTCHA> | null>(null);
+
   //estados para el manejo de la validacion de username
   const [successName, setSuccessName] = useState<string | null>(null);
   const [errorName, setErrorName] = useState<string | null>(null);
@@ -73,6 +78,7 @@ export default function RegisterDialog() {
   //Estados para el manejo de mostrar oculat contraseñas
   const [eyePassword, setEyePassword] = useState<boolean>(false);
   const [eyeRePassword, setEyeRePassword] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
 
   //llamada al backend para verificar el username
   const usernameValidationHandler = async () => {
@@ -209,6 +215,20 @@ export default function RegisterDialog() {
     setErrorMessage(null);
     setIsLoading(true);
     try {
+      if (!siteKey) {
+        throw new Error(
+          "La clave reCAPTCHA no está definida en las variables de entorno"
+        );
+      }
+      const gToken = await recaptchaRef.current?.executeAsync();
+      recaptchaRef.current?.reset();
+
+      if (!gToken) {
+        toast.error("No se pudo obtener el token de reCAPTCHA");
+        setIsLoading(false);
+        return;
+      }
+
       const data = await registerUser({
         username,
         email,
@@ -309,254 +329,346 @@ export default function RegisterDialog() {
     pwnet === true;
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <button className="px-3 py-1 bg-transparent rounded-sm cursor-pointer hover:bg-white hover:text-black">
-          Registrarse
-        </button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[400px]">
-        <DialogHeader>
-          <DialogTitle>Registro de usuario</DialogTitle>
-          <DialogDescription>Crea tu cuenta en V22</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
-          {/* Username */}
-          <div className="grid items-center w-full max-w-sm gap-1">
-            <Label>Nombre de Usuario</Label>
-            <div className="relative">
-              <Input
-                className="pr-10 rounded-full"
-                {...register("username", {
-                  required: "El nombre de usuario es requerido",
-                  minLength: {
-                    value: 3,
-                    message: "Mínimo 3 caracteres",
-                  },
-                  maxLength: {
-                    value: 20,
-                    message: "Máximo 20 caracteres",
-                  },
-                  pattern: {
-                    value: /^[a-z0-9._]+$/,
-                    message: "Solo minúsculas, números, puntos o guiones bajos",
-                  },
-                })}
-                aria-invalid={errors.username ? "true" : "false"}
-              />
-              <div className="absolute -translate-y-1/2 right-2 top-1/2">
-                {validatingName && (
-                  <div title="Verificando disponibilidad...">
-                    <Loader2 className="text-blue-500 animate-spin" />
-                  </div>
-                )}
-                {!validatingName && successName && (
-                  <div title="Nombre de usuario disponible">
-                    <UserRoundCheck className="text-[#06d6a0]" />
-                  </div>
-                )}
-                {!validatingName && errorName && (
-                  <div title="Este nombre ya está en uso">
-                    <UserRoundX className="text-[#f77f00]" />
-                  </div>
-                )}
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <button className="px-3 py-1 bg-transparent rounded-sm cursor-pointer hover:bg-white hover:text-black">
+            Registrarse
+          </button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Registro de usuario</DialogTitle>
+            <DialogDescription>Crea tu cuenta en V22</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
+            {/* Username */}
+            <div className="grid items-center w-full max-w-sm gap-1">
+              <Label>Nombre de Usuario</Label>
+              <div className="relative">
+                <Input
+                  className="pr-10 rounded-full"
+                  {...register("username", {
+                    required: "El nombre de usuario es requerido",
+                    minLength: {
+                      value: 3,
+                      message: "Mínimo 3 caracteres",
+                    },
+                    maxLength: {
+                      value: 20,
+                      message: "Máximo 20 caracteres",
+                    },
+                    pattern: {
+                      value: /^[a-z0-9._]+$/,
+                      message:
+                        "Solo minúsculas, números, puntos o guiones bajos",
+                    },
+                  })}
+                  aria-invalid={errors.username ? "true" : "false"}
+                />
+                <div className="absolute -translate-y-1/2 right-2 top-1/2">
+                  {validatingName && (
+                    <div title="Verificando disponibilidad...">
+                      <Loader2 className="text-blue-500 animate-spin" />
+                    </div>
+                  )}
+                  {!validatingName && successName && (
+                    <div title="Nombre de usuario disponible">
+                      <UserRoundCheck className="text-[#06d6a0]" />
+                    </div>
+                  )}
+                  {!validatingName && errorName && (
+                    <div title="Este nombre ya está en uso">
+                      <UserRoundX className="text-[#f77f00]" />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Mensaje de error con animación */}
-            <div className="relative h-5 mb-1 overflow-hidden">
-              <AnimatePresence mode="wait">
-                {errors.username && (
-                  <motion.div
-                    key={errors.username.message}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{errors.username.message}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* Email */}
-          <div className="grid items-center w-full max-w-sm gap-1">
-            <Label>Correo</Label>
-            <div className="relative">
-              <Input
-                className="pr-10 rounded-full"
-                type="email"
-                {...register("email", {
-                  required: "El correo es requerido",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Correo no válido",
-                  },
-                  minLength: {
-                    value: 5,
-                    message: "Mínimo 6 caracteres",
-                  },
-                  maxLength: {
-                    value: 254,
-                    message: "Máximo 254 caracteres",
-                  },
-                })}
-                aria-invalid={errors.email ? "true" : "false"}
-              />
-              <div className="absolute -translate-y-1/2 right-2 top-1/2">
-                {validatingEmail && (
-                  <div title="Verificando disponibilidad...">
-                    <Loader2 className="text-blue-500 animate-spin" />
-                  </div>
-                )}
-                {!validatingEmail && successEmail && (
-                  <div title="Correo disponible">
-                    <MailCheck className="text-[#06d6a0]" />
-                  </div>
-                )}
-                {!validatingEmail && errorEmail && (
-                  <div title="Este correo ya está en uso">
-                    <MailX className="text-[#f77f00]" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Mensaje de error con animación */}
-            <div className="relative h-5 mb-1 overflow-hidden">
-              <AnimatePresence mode="wait">
-                {errors.email && (
-                  <motion.div
-                    key={errors.email.message}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{errors.email.message}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="grid items-center w-full max-w-sm gap-1">
-            <Label>Contraseña</Label>
-
-            <div className="relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={eyePassword ? "text" : "password"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <Input
-                    className="pr-10 rounded-full"
-                    type={eyePassword ? "text" : "password"}
-                    {...register("password", {
-                      required: "La contraseña es obligatoria",
-                      minLength: {
-                        value: 6,
-                        message: "Mínimo 6 caracteres",
-                      },
-                      maxLength: {
-                        value: 64,
-                        message: "Máximo 64 caracteres",
-                      },
-                    })}
-                  />
-                </motion.div>
-              </AnimatePresence>
-              <div className="w-full px-4 mt-1">
-                {passwordStrength ? (
-                  <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200">
+              {/* Mensaje de error con animación */}
+              <div className="relative h-5 mb-1 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {errors.username && (
                     <motion.div
-                      className="h-full"
-                      initial={{ width: 0, backgroundColor: "#ef4444" }}
-                      animate={{
-                        width: passwordStrength.clase.width,
-                        backgroundColor: passwordStrength.bgColor,
-                      }}
-                      transition={{ duration: 0.4, ease: "easeInOut" }}
+                      key={errors.username.message}
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
+                    >
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{errors.username.message}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="grid items-center w-full max-w-sm gap-1">
+              <Label>Correo</Label>
+              <div className="relative">
+                <Input
+                  className="pr-10 rounded-full"
+                  type="email"
+                  {...register("email", {
+                    required: "El correo es requerido",
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: "Correo no válido",
+                    },
+                    minLength: {
+                      value: 5,
+                      message: "Mínimo 6 caracteres",
+                    },
+                    maxLength: {
+                      value: 254,
+                      message: "Máximo 254 caracteres",
+                    },
+                  })}
+                  aria-invalid={errors.email ? "true" : "false"}
+                />
+                <div className="absolute -translate-y-1/2 right-2 top-1/2">
+                  {validatingEmail && (
+                    <div title="Verificando disponibilidad...">
+                      <Loader2 className="text-blue-500 animate-spin" />
+                    </div>
+                  )}
+                  {!validatingEmail && successEmail && (
+                    <div title="Correo disponible">
+                      <MailCheck className="text-[#06d6a0]" />
+                    </div>
+                  )}
+                  {!validatingEmail && errorEmail && (
+                    <div title="Este correo ya está en uso">
+                      <MailX className="text-[#f77f00]" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Mensaje de error con animación */}
+              <div className="relative h-5 mb-1 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {errors.email && (
+                    <motion.div
+                      key={errors.email.message}
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
+                    >
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{errors.email.message}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="grid items-center w-full max-w-sm gap-1">
+              <Label>Contraseña</Label>
+
+              <div className="relative">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={eyePassword ? "text" : "password"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Input
+                      className="pr-10 rounded-full"
+                      type={eyePassword ? "text" : "password"}
+                      {...register("password", {
+                        required: "La contraseña es obligatoria",
+                        minLength: {
+                          value: 6,
+                          message: "Mínimo 6 caracteres",
+                        },
+                        maxLength: {
+                          value: 64,
+                          message: "Máximo 64 caracteres",
+                        },
+                      })}
                     />
+                  </motion.div>
+                </AnimatePresence>
+                <div className="w-full px-4 mt-1">
+                  {passwordStrength ? (
+                    <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200">
+                      <motion.div
+                        className="h-full"
+                        initial={{ width: 0, backgroundColor: "#ef4444" }}
+                        animate={{
+                          width: passwordStrength.clase.width,
+                          backgroundColor: passwordStrength.bgColor,
+                        }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200"></div>
+                  )}
+                  <div className="absolute flex items-center -translate-y-1/2 right-2 top-2/5">
+                    {passwordStrength &&
+                      (passwordStrength.strength === "Buena" ||
+                        passwordStrength.strength === "Fuerte") &&
+                      pwLoading === false &&
+                      pwnet === false && (
+                        <motion.div
+                          key={passwordStrength.strength + "-alert"}
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          className="text-[9px] font-medium text-[#f77f00]"
+                        >
+                          <div className="flex items-center pt-1">
+                            <p>No segura</p>
+                            <ShieldAlert className="ml-1" />
+                          </div>
+                        </motion.div>
+                      )}
+
+                    {passwordStrength &&
+                      pwnet === true &&
+                      (passwordStrength.strength === "Buena" ||
+                        passwordStrength.strength === "Fuerte") &&
+                      pwLoading === false && (
+                        <motion.div
+                          key={passwordStrength.strength + "-pwnet"}
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          className="text-[9px] font-medium text-[#06d6a0]"
+                        >
+                          <div className="flex items-center pt-1">
+                            <p>
+                              Verificado <br /> por PWNET
+                            </p>
+                            <ShieldCheck className="ml-1" />
+                          </div>
+                        </motion.div>
+                      )}
+
+                    {passwordStrength &&
+                      pwLoading === true &&
+                      (passwordStrength.strength === "Buena" ||
+                        passwordStrength.strength === "Fuerte") && (
+                        <motion.div
+                          key={passwordStrength.strength + "-loading"}
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -5 }}
+                          className="text-[9px] font-medium text-[#118ab2]"
+                        >
+                          <div className="flex items-center pt-1">
+                            <Loader2 className="animate-spin" />
+                          </div>
+                        </motion.div>
+                      )}
+                    {/* Botón mostrar/ocultar */}
+                    <button
+                      type="button"
+                      onClick={() => setEyePassword(!eyePassword)}
+                      className="cursor-pointer text-zinc-500 hover:text-zinc-700"
+                    >
+                      <AnimatePresence mode="wait">
+                        {eyePassword ? (
+                          <motion.div
+                            key="eye-closed"
+                            initial={{ opacity: 0, rotate: -10 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: 10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <EyeClosed />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="eye"
+                            initial={{ opacity: 0, rotate: 10 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: -10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Eye />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </button>
                   </div>
-                ) : (
-                  <div className="w-full h-1 overflow-hidden rounded-full bg-zinc-200"></div>
-                )}
-                <div className="absolute flex items-center -translate-y-1/2 right-2 top-2/5">
-                  {passwordStrength &&
-                    (passwordStrength.strength === "Buena" ||
-                      passwordStrength.strength === "Fuerte") &&
-                    pwLoading === false &&
-                    pwnet === false && (
-                      <motion.div
-                        key={passwordStrength.strength + "-alert"}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        className="text-[9px] font-medium text-[#f77f00]"
-                      >
-                        <div className="flex items-center pt-1">
-                          <p>No segura</p>
-                          <ShieldAlert className="ml-1" />
-                        </div>
-                      </motion.div>
-                    )}
+                </div>
+              </div>
+              <div className="relative h-5 mb-1 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {errors.password && (
+                    <motion.div
+                      key={errors.password.message}
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
+                    >
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{errors.password.message}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
 
-                  {passwordStrength &&
-                    pwnet === true &&
-                    (passwordStrength.strength === "Buena" ||
-                      passwordStrength.strength === "Fuerte") &&
-                    pwLoading === false && (
-                      <motion.div
-                        key={passwordStrength.strength + "-pwnet"}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        className="text-[9px] font-medium text-[#06d6a0]"
-                      >
-                        <div className="flex items-center pt-1">
-                          <p>
-                            Verificado <br /> por PWNET
-                          </p>
-                          <ShieldCheck className="ml-1" />
-                        </div>
-                      </motion.div>
-                    )}
+            {/* Confirm Password */}
+            <div className="mt-5">
+              <Label>Confirmar nueva contraseña</Label>
+              <div className="relative mt-1">
+                {/* Campo Input con animación */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={eyeRePassword ? "text" : "password"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Input
+                      className="pr-10 rounded-full"
+                      type={eyeRePassword ? "text" : "password"}
+                      {...register("rePassword", {
+                        validate: (value) =>
+                          value === password || "Las contraseñas no coinciden",
+                      })}
+                      aria-invalid={errors.rePassword ? "true" : "false"}
+                    />
+                  </motion.div>
+                </AnimatePresence>
 
-                  {passwordStrength &&
-                    pwLoading === true &&
-                    (passwordStrength.strength === "Buena" ||
-                      passwordStrength.strength === "Fuerte") && (
-                      <motion.div
-                        key={passwordStrength.strength + "-loading"}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        className="text-[9px] font-medium text-[#118ab2]"
-                      >
-                        <div className="flex items-center pt-1">
-                          <Loader2 className="animate-spin" />
-                        </div>
-                      </motion.div>
-                    )}
+                {/* Íconos y botón para mostrar/ocultar */}
+                <div className="absolute flex items-center gap-2 -translate-y-1/2 right-2 top-2/4">
+                  {rePassword && !errors.rePassword && (
+                    <div title="Contraseña confirmada">
+                      <CircleCheck className="text-[#06d6a0]" />
+                    </div>
+                  )}
+                  {rePassword && errors.rePassword && (
+                    <div title="Las contraseñas no coinciden">
+                      <CircleX className="text-[#f77f00]" />
+                    </div>
+                  )}
+
                   {/* Botón mostrar/ocultar */}
                   <button
                     type="button"
-                    onClick={() => setEyePassword(!eyePassword)}
+                    onClick={() => setEyeRePassword(!eyeRePassword)}
                     className="cursor-pointer text-zinc-500 hover:text-zinc-700"
                   >
                     <AnimatePresence mode="wait">
-                      {eyePassword ? (
+                      {eyeRePassword ? (
                         <motion.div
                           key="eye-closed"
                           initial={{ opacity: 0, rotate: -10 }}
@@ -581,149 +693,68 @@ export default function RegisterDialog() {
                   </button>
                 </div>
               </div>
-            </div>
-            <div className="relative h-5 mb-1 overflow-hidden">
-              <AnimatePresence mode="wait">
-                {errors.password && (
-                  <motion.div
-                    key={errors.password.message}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{errors.password.message}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
 
-          {/* Confirm Password */}
-          <div className="mt-5">
-            <Label>Confirmar nueva contraseña</Label>
-            <div className="relative mt-1">
-              {/* Campo Input con animación */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={eyeRePassword ? "text" : "password"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <Input
-                    className="pr-10 rounded-full"
-                    type={eyeRePassword ? "text" : "password"}
-                    {...register("rePassword", {
-                      validate: (value) =>
-                        value === password || "Las contraseñas no coinciden",
-                    })}
-                    aria-invalid={errors.rePassword ? "true" : "false"}
-                  />
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Íconos y botón para mostrar/ocultar */}
-              <div className="absolute flex items-center gap-2 -translate-y-1/2 right-2 top-2/4">
-                {rePassword && !errors.rePassword && (
-                  <div title="Contraseña confirmada">
-                    <CircleCheck className="text-[#06d6a0]" />
-                  </div>
-                )}
-                {rePassword && errors.rePassword && (
-                  <div title="Las contraseñas no coinciden">
-                    <CircleX className="text-[#f77f00]" />
-                  </div>
-                )}
-
-                {/* Botón mostrar/ocultar */}
-                <button
-                  type="button"
-                  onClick={() => setEyeRePassword(!eyeRePassword)}
-                  className="cursor-pointer text-zinc-500 hover:text-zinc-700"
-                >
-                  <AnimatePresence mode="wait">
-                    {eyeRePassword ? (
-                      <motion.div
-                        key="eye-closed"
-                        initial={{ opacity: 0, rotate: -10 }}
-                        animate={{ opacity: 1, rotate: 0 }}
-                        exit={{ opacity: 0, rotate: 10 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <EyeClosed />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="eye"
-                        initial={{ opacity: 0, rotate: 10 }}
-                        animate={{ opacity: 1, rotate: 0 }}
-                        exit={{ opacity: 0, rotate: -10 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Eye />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </button>
+              {/* Mensaje de error */}
+              <div className="relative h-5 mb-1 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {errors.rePassword && (
+                    <motion.div
+                      key={errors.rePassword.message}
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
+                    >
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{errors.rePassword.message}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
-
-            {/* Mensaje de error */}
-            <div className="relative h-5 mb-1 overflow-hidden">
-              <AnimatePresence mode="wait">
-                {errors.rePassword && (
-                  <motion.div
-                    key={errors.rePassword.message}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute inset-0 flex items-center gap-1 text-xs text-[#f77f00]"
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{errors.rePassword.message}</span>
-                  </motion.div>
+            <div className="flex flex-col justify-center w-full">
+              <Button
+                disabled={!isFormValid}
+                className="w-full text-xl tracking-tight text-white transition-opacity rounded-full opacity-50 cursor-not-allowed bg-gradient-mascoti enabled:opacity-100 enabled:cursor-pointer"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Registrando...
+                  </>
+                ) : (
+                  "Crear cuenta"
                 )}
-              </AnimatePresence>
-            </div>
-          </div>
-          <div className="flex flex-col justify-center w-full">
-            <Button
-              disabled={!isFormValid}
-              className="w-full text-xl tracking-tight text-white transition-opacity rounded-full opacity-50 cursor-not-allowed bg-gradient-mascoti enabled:opacity-100 enabled:cursor-pointer"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Registrando...
-                </>
-              ) : (
-                "Crear cuenta"
+              </Button>
+
+              {successMessage && (
+                <div className="flex justify-center">
+                  <p className="absolute p-1 mt-2 text-xs font-medium tracking-tight text-green-500 duration-100 rounded-full bottom-2 animate-in">
+                    {successMessage}
+                  </p>
+                </div>
               )}
-            </Button>
-
-            {successMessage && (
-              <div className="flex justify-center">
-                <p className="absolute p-1 mt-2 text-xs font-medium tracking-tight text-green-500 duration-100 rounded-full bottom-2 animate-in">
-                  {successMessage}
-                </p>
-              </div>
-            )}
-            {errorMessage && (
-              <div className="flex justify-center">
-                <p className="absolute p-1 mt-2 text-xs font-medium tracking-tight text-red-500 duration-100 rounded-full bottom-2 animate-in">
-                  {errorMessage}
-                </p>
-              </div>
-            )}
-          </div>
-        </form>
-        <DialogFooter />
-      </DialogContent>
-    </Dialog>
+              {errorMessage && (
+                <div className="flex justify-center">
+                  <p className="absolute p-1 mt-2 text-xs font-medium tracking-tight text-red-500 duration-100 rounded-full bottom-2 animate-in">
+                    {errorMessage}
+                  </p>
+                </div>
+              )}
+            </div>
+          </form>
+          <DialogFooter />
+        </DialogContent>
+      </Dialog>
+      {open && (
+        <ReCAPTCHA
+          sitekey={siteKey}
+          size="invisible"
+          ref={recaptchaRef}
+          badge="bottomleft"
+        />
+      )}
+    </>
   );
 }
