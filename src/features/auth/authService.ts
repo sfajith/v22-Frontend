@@ -9,6 +9,7 @@ export type registerPayload = {
   username: string;
   email: string;
   password: string;
+  gToken: string;
 };
 
 export type LoginResponse = {
@@ -287,6 +288,7 @@ export async function resendVerification(payload: ResendPayload) {
 //Envio de enlace de recuperacion de contraseña
 type ForgotPayload = {
   email: string;
+  gToken: string;
 };
 
 type ForgotSuccess = {

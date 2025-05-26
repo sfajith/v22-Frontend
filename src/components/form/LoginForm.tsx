@@ -34,10 +34,22 @@ export default function LoginDialog() {
 
   const { handlerLoadCollection } = useUserCollection();
 
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
   const handleLogin = async () => {
     setIsLoading(true);
     setTimeout(async () => {
       try {
+        if (
+          (isValidEmail(form.email) === false && form.email.length < 5) ||
+          form.email.length > 254
+        ) {
+          throw new Error("Email y/o contraseña incorrectos");
+        }
+        if (form.password.length < 6 || form.password.length > 64) {
+          throw new Error("Email y/o contraseña incorrectos");
+        }
         if (!siteKey) {
           throw new Error(
             "La clave reCAPTCHA no está definida en las variables de entorno"
@@ -95,7 +107,10 @@ export default function LoginDialog() {
 
           <div className="space-y-3">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium">
+              <label
+                htmlFor="email"
+                className="mb-1 text-base font-medium text-zinc-600"
+              >
                 Correo
               </label>
               <Input
@@ -105,11 +120,15 @@ export default function LoginDialog() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="ejemplo@correo.com"
+                className="rounded-full"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium">
+              <label
+                htmlFor="password"
+                className="mb-1 text-base font-medium text-zinc-600"
+              >
                 Contraseña
               </label>
               <Input
@@ -119,6 +138,7 @@ export default function LoginDialog() {
                 placeholder="tu contraseña"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="rounded-full"
               />
             </div>
 

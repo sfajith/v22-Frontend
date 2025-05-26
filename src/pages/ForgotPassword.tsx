@@ -1,23 +1,42 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { forgotPassword } from "../features/auth/authService";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const siteKey: string = import.meta.env.VITE_RECAPTCHA_SITE_KEY!;
 
 function ForgotPassword() {
   const [email, setEmail] = useState<string>("");
   const [good, setGood] = useState<boolean>(false);
   const [evento, setEvento] = useState<string | null>(null);
+  const recaptchaRef = useRef<InstanceType<typeof ReCAPTCHA> | null>(null);
 
   const resendHandlder = async () => {
     toast.dismiss();
     setEvento("loading");
-    const payload = {
-      email,
-    };
+
     setTimeout(async () => {
       try {
+        if (!siteKey) {
+          throw new Error(
+            "La clave reCAPTCHA no está definida en las variables de entorno"
+          );
+        }
+        const gToken = await recaptchaRef.current?.executeAsync();
+        recaptchaRef.current?.reset();
+
+        if (!gToken) {
+          toast.error("No se pudo obtener el token de reCAPTCHA");
+          setEvento(null);
+          return;
+        }
+        const payload = {
+          email,
+          gToken,
+        };
         const response = await forgotPassword(payload);
         if (response.success) {
           toast.dismiss();
@@ -107,6 +126,12 @@ function ForgotPassword() {
           </h3>
         </motion.div>
       )}
+      <ReCAPTCHA
+        sitekey={siteKey}
+        size="invisible"
+        ref={recaptchaRef}
+        badge="bottomleft"
+      />
     </>
   );
 }

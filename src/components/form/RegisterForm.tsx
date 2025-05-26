@@ -233,6 +233,7 @@ export default function RegisterDialog() {
         username,
         email,
         password,
+        gToken,
       });
 
       if (data.success) {
@@ -344,7 +345,9 @@ export default function RegisterDialog() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-0">
             {/* Username */}
             <div className="grid items-center w-full max-w-sm gap-1">
-              <Label>Nombre de Usuario</Label>
+              <Label className="mb-1 text-base font-medium text-zinc-600">
+                Nombre de Usuario
+              </Label>
               <div className="relative">
                 <Input
                   className="pr-10 rounded-full"
@@ -407,7 +410,9 @@ export default function RegisterDialog() {
 
             {/* Email */}
             <div className="grid items-center w-full max-w-sm gap-1">
-              <Label>Correo</Label>
+              <Label className="mb-1 text-base font-medium text-zinc-600">
+                Correo
+              </Label>
               <div className="relative">
                 <Input
                   className="pr-10 rounded-full"
@@ -470,7 +475,9 @@ export default function RegisterDialog() {
 
             {/* Password */}
             <div className="grid items-center w-full max-w-sm gap-1">
-              <Label>Contraseña</Label>
+              <Label className="mb-1 text-base font-medium text-zinc-600">
+                Contraseña
+              </Label>
 
               <div className="relative">
                 <AnimatePresence mode="wait">
@@ -625,7 +632,9 @@ export default function RegisterDialog() {
 
             {/* Confirm Password */}
             <div className="mt-5">
-              <Label>Confirmar nueva contraseña</Label>
+              <Label className="mb-1 text-base font-medium text-zinc-600">
+                Confirmar nueva contraseña
+              </Label>
               <div className="relative mt-1">
                 {/* Campo Input con animación */}
                 <AnimatePresence mode="wait">

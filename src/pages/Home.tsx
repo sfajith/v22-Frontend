@@ -166,8 +166,8 @@ function Home() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <h1 className="text-3xl font-bold text-[#751B80] text-center">
-                Acortador de enlaces!
+              <h1 className="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-[linear-gradient(90deg,rgba(196,121,128,1)_0%,rgba(166,63,128,1)_30%,rgba(138,27,128,1)_69%,rgba(97,75,175,1)_100%)] tracking-tight">
+                Acortador de enlaces
               </h1>
             </motion.div>
           ) : (
