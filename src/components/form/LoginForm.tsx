@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import {
   Dialog,
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useAppDispatch } from "../../app/hooks";
 import { loginSuccess } from "../../features/auth/authSlice";
 import { loginUser } from "../../features/auth/authService";
-import { Loader2 } from "lucide-react"; // Ícono de carga de Lucide
+import { AlertCircle, Loader2 } from "lucide-react"; // Ícono de carga de Lucide
 import { useNavigate } from "react-router-dom";
 import { useUserCollection } from "../../app/hooks/useUserCollection";
 import { toast } from "sonner";
@@ -97,6 +98,10 @@ export default function LoginDialog() {
     navigate("/resend-email"); // <-- Redirige
   };
 
+  useEffect(() => {
+    setErrorMessage(null);
+  }, [form]);
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -146,26 +151,47 @@ export default function LoginDialog() {
                 className="rounded-full"
               />
             </div>
-            <div className="flex flex-col justify-start w-full gap-1">
-              <button
-                onClick={handleForgotPassword}
-                className="text-xs font-medium text-left underline cursor-pointer text-muted-foreground"
-              >
-                Olvidé mi contraseña
-              </button>
-              {errorMessage ===
-                "Tu cuenta aún no ha sido verificada. Por favor revisa tu correo o solicita un nuevo enlace." && (
+            <AnimatePresence initial={false}>
+              <div className="flex flex-col justify-start w-full gap-1">
                 <button
+                  onClick={handleForgotPassword}
                   className="text-xs font-medium text-left underline cursor-pointer text-muted-foreground"
-                  onClick={handleResendVerification}
                 >
-                  Reenviar correo de verificación
+                  Olvidé mi contraseña
                 </button>
+                {errorMessage ===
+                  "Tu cuenta aún no ha sido verificada. Por favor revisa tu correo o solicita un nuevo enlace." && (
+                  <motion.div
+                    key="verify"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <button
+                      className="text-xs font-medium text-left underline cursor-pointer text-muted-foreground"
+                      onClick={handleResendVerification}
+                    >
+                      Reenviar correo de verificación
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+              {errorMessage && (
+                <motion.div
+                  key="loginError"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden gap-1 text-xs text-[#f77f00] flex items-center"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </motion.div>
               )}
-            </div>
-            {errorMessage && (
-              <p className="text-sm font-medium text-red-500">{errorMessage}</p>
-            )}
+            </AnimatePresence>
           </div>
 
           <DialogFooter>
