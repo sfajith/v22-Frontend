@@ -86,29 +86,24 @@ export function ResetPassword() {
       token,
       password: newPassword,
     };
-    try {
-      setEvento("loading");
-      const response = await restorePassword(payload);
-      if (response.success) {
+    setEvento("loading");
+    restorePassword(payload)
+      .then((response) => {
         toast.dismiss();
         setEvento("success");
         toast.success("Contraseña reestablecida con exito!");
         setTimeout(() => {
           navigate("/");
         }, 1000);
-      }
-    } catch (error) {
-      toast.dismiss();
-      setEvento("error");
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "No se pudo reestablecer la contraseña";
-      toast.error(errorMessage);
-      if (errorMessage === "") {
-        setError(true);
-      }
-    }
+      })
+      .catch((error) => {
+        toast.dismiss();
+        setEvento("error");
+        toast.error(error.message);
+        if (error.Message === "") {
+          setError(true);
+        }
+      });
   };
 
   //verificacion de la contraseña via PWNET
@@ -117,26 +112,24 @@ export function ResetPassword() {
   const passwordPwnetValidation = (newPassword: string) => {
     setPwnet(null);
     setTimeout(async () => {
-      try {
-        const payload = {
-          password: newPassword,
-        };
-        const response = await passwordValidation(payload);
-
-        if (response.success) {
+      const payload = {
+        password: newPassword,
+      };
+      passwordValidation(payload)
+        .then((respond) => {
           setPwLoading(false);
           toast.dismiss();
           toast.success("contraseña revisada por PWNET");
           setPwnet(true);
-        }
-      } catch (error) {
-        toast.dismiss();
-        toast.error(
-          "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
-        );
-        setPwLoading(false);
-        setPwnet(false);
-      }
+        })
+        .catch((error) => {
+          toast.dismiss();
+          toast.error(
+            "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
+          );
+          setPwLoading(false);
+          setPwnet(false);
+        });
     }, 400);
   };
 

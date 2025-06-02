@@ -94,25 +94,21 @@ export default function RegisterDialog() {
       return;
     }
     setTimeout(async () => {
-      try {
-        const response = await usernameValidation({
-          username,
-        });
-        if (response.success) {
-          setSuccessName(response.success);
+      usernameValidation({ username })
+        .then((response) => {
+          setSuccessName("success");
           toast.dismiss(loadingToast);
           toast.success(`El nombre de usuario ${username} está disponible`);
-        }
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "No disponible";
-        toast.dismiss(loadingToast);
-        setSuccessName(null);
-        setErrorName(message);
-        toast.error(`El nombre de usuario ${username} no está disponible`);
-      } finally {
-        setValidatingName(false);
-      }
+        })
+        .catch((error) => {
+          toast.dismiss(loadingToast);
+          setSuccessName(null);
+          setErrorName(error.message);
+          toast.error(`El nombre de usuario ${username} no está disponible`);
+        })
+        .finally(() => {
+          setValidatingName(false);
+        });
     }, 700);
   };
 
@@ -149,25 +145,21 @@ export default function RegisterDialog() {
       return;
     }
     setTimeout(async () => {
-      try {
-        const response = await emailValidation({
-          email,
-        });
-        if (response.success) {
+      emailValidation({ email })
+        .then((response) => {
           toast.dismiss(loadingToast);
-          setSuccessEmail(response.success);
+          setSuccessEmail("success");
           toast.success(`El email ${email} esta correcto y disponible`);
-        }
-      } catch (error) {
-        toast.dismiss(loadingToast);
-        const message =
-          error instanceof Error ? error.message : "No disponible";
-        toast.error(message);
-        setSuccessEmail(null);
-        setErrorEmail(message);
-      } finally {
-        setValidatingEmail(false);
-      }
+        })
+        .catch((error) => {
+          toast.dismiss(loadingToast);
+          toast.error(error.message);
+          setSuccessEmail(null);
+          setErrorEmail("error");
+        })
+        .finally(() => {
+          setValidatingEmail(false);
+        });
     }, 700);
   };
 
@@ -214,41 +206,40 @@ export default function RegisterDialog() {
     if (errors.password) return;
     setErrorMessage(null);
     setIsLoading(true);
-    try {
-      if (!siteKey) {
-        throw new Error(
-          "La clave reCAPTCHA no está definida en las variables de entorno"
-        );
-      }
-      const gToken = await recaptchaRef.current?.executeAsync();
-      recaptchaRef.current?.reset();
 
-      if (!gToken) {
-        toast.error("No se pudo obtener el token de reCAPTCHA");
-        setIsLoading(false);
-        return;
-      }
+    if (!siteKey) {
+      throw new Error(
+        "La clave reCAPTCHA no está definida en las variables de entorno"
+      );
+    }
+    const gToken = await recaptchaRef.current?.executeAsync();
+    recaptchaRef.current?.reset();
 
-      const data = await registerUser({
-        username,
-        email,
-        password,
-        gToken,
-      });
+    if (!gToken) {
+      toast.error("No se pudo obtener el token de reCAPTCHA");
+      setIsLoading(false);
+      return;
+    }
 
-      if (data.success) {
+    registerUser({
+      username,
+      email,
+      password,
+      gToken,
+    })
+      .then((response) => {
+        toast.dismiss();
         toast.success(`Registro exitoso, confirma tu cuenta desde ${email}`);
         setSuccessMessage(
           "¡Registro exitoso! Ve a tu correo para activar tu cuenta."
         );
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Error en el registro";
-      setErrorMessage(message);
-    } finally {
-      setIsLoading(false);
-    }
+      })
+      .catch((error) => {
+        setErrorMessage(error.message);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   const onSubmit = () => {
@@ -268,26 +259,24 @@ export default function RegisterDialog() {
   const passwordPwnetValidation = (newPassword: string) => {
     setPwnet(null);
     setTimeout(async () => {
-      try {
-        const payload = {
-          password: newPassword,
-        };
-        const response = await passwordValidation(payload);
-
-        if (response.success) {
+      const payload = {
+        password: newPassword,
+      };
+      passwordValidation(payload)
+        .then((respond) => {
           setPwLoading(false);
           toast.dismiss();
           toast.success("contraseña revisada por PWNET");
           setPwnet(true);
-        }
-      } catch (error) {
-        toast.dismiss();
-        toast.error(
-          "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
-        );
-        setPwLoading(false);
-        setPwnet(false);
-      }
+        })
+        .catch((error) => {
+          toast.dismiss();
+          toast.error(
+            "Esta contraseña podría haber sido expuesta antes. Cambiarla ayuda a protegerte."
+          );
+          setPwLoading(false);
+          setPwnet(false);
+        });
     }, 400);
   };
 

@@ -5,6 +5,7 @@ const initialState: AuthState = {
   user: null,
   token: null,
   isAuthenticated: false,
+  accessToken: null,
   loading: false,
   collection: {
     totalCount: 0,
@@ -39,6 +40,9 @@ const authSlice = createSlice({
     disableLoading(state) {
       state.loading = false;
     },
+    overWriteAccessToken(state, action) {
+      state.accessToken = action.payload;
+    },
     loginStart(state) {
       state.loading = true;
       state.error = null;
@@ -48,6 +52,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.token = action.payload.token;
       state.user = action.payload.user;
+      state.accessToken = action.payload.accessToken;
     },
     loginFailure(state, action) {
       state.loading = false;
@@ -132,5 +137,6 @@ export const {
   disableSuccess,
   globalLoading,
   disableLoading,
+  overWriteAccessToken,
 } = authSlice.actions;
 export default authSlice.reducer;

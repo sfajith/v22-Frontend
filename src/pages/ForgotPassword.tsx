@@ -19,40 +19,35 @@ function ForgotPassword() {
     setEvento("loading");
 
     setTimeout(async () => {
-      try {
-        if (!siteKey) {
-          throw new Error(
-            "La clave reCAPTCHA no está definida en las variables de entorno"
-          );
-        }
-        const gToken = await recaptchaRef.current?.executeAsync();
-        recaptchaRef.current?.reset();
+      if (!siteKey) {
+        throw new Error(
+          "La clave reCAPTCHA no está definida en las variables de entorno"
+        );
+      }
+      const gToken = await recaptchaRef.current?.executeAsync();
+      recaptchaRef.current?.reset();
 
-        if (!gToken) {
-          toast.error("No se pudo obtener el token de reCAPTCHA");
-          setEvento(null);
-          return;
-        }
-        const payload = {
-          email,
-          gToken,
-        };
-        const response = await forgotPassword(payload);
-        if (response.success) {
+      if (!gToken) {
+        toast.error("No se pudo obtener el token de reCAPTCHA");
+        setEvento(null);
+        return;
+      }
+      const payload = {
+        email,
+        gToken,
+      };
+      forgotPassword(payload)
+        .then((response) => {
           toast.dismiss();
           `El enlace para recuperar tu cuenta se envió a tu correo ${email}`;
           setEvento(null);
           setGood(true);
-        }
-      } catch (error) {
-        setEvento(null);
-        toast.dismiss();
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "No se pudo recuperar la contraseña"
-        );
-      }
+        })
+        .catch((error) => {
+          setEvento(null);
+          toast.dismiss();
+          toast.error(error.menssage);
+        });
     }, 500);
   };
   return (

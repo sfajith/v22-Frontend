@@ -1,4 +1,5 @@
 import { Link } from "../links/linkTypes";
+import axios from "axios";
 export type LoginPayload = {
   email: string;
   password: string;
@@ -13,7 +14,7 @@ export type registerPayload = {
 };
 
 export type LoginResponse = {
-  token: string;
+  accessToken: string;
   user: {
     id: string;
     name: string;
@@ -26,6 +27,7 @@ export type LoginResponse = {
 
 export type TestLogin = {
   ok: boolean;
+  accessToken: string;
   user: {
     id: string;
     name: string;
@@ -37,59 +39,43 @@ export type TestLogin = {
 };
 
 // Función que maneja el registro de un usuario
-export async function registerUser(
-  payload: registerPayload
-): Promise<{ success: string }> {
-  const response = await fetch("http://localhost:3000/api/user/register", {
-    method: "POST",
+export async function registerUser(payload: registerPayload) {
+  return axios.post("http://localhost:3000/auth/register", payload, {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
   });
-  const data: { success: string } | { error: string } = await response.json();
-  if (!response.ok) {
-    const err = data as { error: string };
-    throw new Error(err.error || "Login fallido");
-  }
-  return data as { success: string };
 }
 
 // Función que maneja el login de un usuario
-type ErrorResponse = { error: string };
 export async function loginUser(payload: LoginPayload): Promise<LoginResponse> {
-  const response = await fetch("http://localhost:3000/api/user/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  const data: LoginResponse | ErrorResponse = await response.json();
-  if (!response.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.error || "Login fallido");
-  }
-
-  return data as LoginResponse;
+  return axios
+    .post<LoginResponse>("http://localhost:3000/auth/login", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      withCredentials: true,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage = error.response?.data?.error || "Login fallido";
+      throw new Error(errorMessage);
+    });
 }
 
-// Función para verificar la validez del token
-export async function checkToken(payload: string | null): Promise<TestLogin> {
-  const response = await fetch("http://localhost:3000/api/user/auth", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${payload}`,
-    },
-  });
-  if (!response.ok) {
-    throw new Error("Token invalido");
-  }
-  const data: TestLogin = await response.json();
-  return data;
+export async function checkToken(): Promise<TestLogin> {
+  const response = await axios.post<TestLogin>(
+    "http://localhost:3000/auth/renew",
+    {},
+    {
+      headers: { "Content-Type": "application/json" },
+      withCredentials: true,
+    }
+  );
+  return response.data;
 }
 
+//funcion para cargar enlaces del usuario
 type CollectionPayload = {
   username: string;
   nextCursor: string | null;
@@ -102,187 +88,110 @@ type CollectionResponse = {
   totalCount: number;
 };
 
-// Función para obtener la colección de enlaces de un usuario
 export async function getUserCollection(
   payload: CollectionPayload
 ): Promise<CollectionResponse> {
-  const cursor = payload.nextCursor ?? ""; // si no hay cursor, vacío
-  const response = await fetch(
-    `http://localhost:3000/api/user/${payload.username}/collection?cursor=${cursor}`,
-    {
-      method: "GET",
+  const cursor = payload.nextCursor ?? "";
+  let url = `http://localhost:3000/api/user/${payload.username}/collection`;
+  if (cursor) url += `?cursor=${cursor}`;
+
+  return axios
+    .get<CollectionResponse>(url, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${payload.token}`,
       },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Token invalidoxx");
-  }
-
-  const data: CollectionResponse = await response.json();
-
-  return data;
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      console.error("Error:", error.response?.data);
+      throw new Error(error.response?.data?.error || "Expiró la sesión");
+    });
 }
 
+//funcion para eliminar enlace
 export type deletePayload = {
-  username?: string;
   linkId: string;
   token: string | null;
+  username?: string;
 };
 
-type deleteResponse = {
-  success: string;
-};
-
-// Función para eliminar un enlace de la colección de un usuario
 export async function deleteLink(payload: deletePayload) {
-  const response = await fetch(
+  return axios.delete(
     `http://localhost:3000/api/user/${payload.username}/${payload.linkId}`,
     {
-      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${payload.token}`,
       },
     }
   );
-  if (!response.ok) {
-    throw new Error("No se pudo eliminar el enlace");
-  }
-  const data: deleteResponse = await response.json();
-  return data;
 }
 
 //cambio de contraseña
-
 type changeType = {
   username: string;
   token: string | null;
   body: { password: string; newPassword: string };
 };
 
-type changeResponse = {
-  success: string;
-};
-type changeError = {
-  error: string;
-};
 export async function changePassword(payload: changeType) {
-  const response = await fetch(
-    `http://localhost:3000/api/user/${payload.username}/reset`,
+  return axios.put(
+    `http://localhost:3000/auth/${payload.username}/reset`,
+    payload.body,
     {
-      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${payload.token}`,
       },
-      body: JSON.stringify(payload.body),
     }
   );
-
-  const data: changeResponse | changeError = await response.json();
-  if (!response.ok) {
-    const err = data as ErrorResponse;
-    throw new Error(err.error || "Error al cambiar la contraseña");
-  }
-
-  return data as changeResponse;
 }
 
+//funcion para borrar cuenta
 type deleteType = {
   username: string;
   token: string | null;
   body: { password: string };
 };
-type deleteUserResponse = {
-  success: string;
-};
-type deleteError = {
-  error: string;
-};
 export async function deleteAccount(payload: deleteType) {
-  const response = await fetch(
-    `http://localhost:3000/api/user/${payload.username}/delete`,
+  return axios.post(
+    `http://localhost:3000/auth/${payload.username}/delete`,
+    payload.body,
     {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${payload.token}`,
       },
-      body: JSON.stringify(payload.body),
     }
   );
-  const data: deleteUserResponse | deleteError = await response.json();
-  if (!response.ok) {
-    const err = data as deleteError;
-    throw new Error(err.error || "No se pudo eliminar el usuario");
-  }
-  return data as deleteUserResponse;
 }
 
 //verificacion de la cuenta
 type VerifyPayload = {
   token: string | null;
 };
-
-type VerifiySuccess = {
-  success: string;
-};
-
-type VerifyError = {
-  error: string;
-};
 export async function verifyAccount(payload: VerifyPayload) {
-  const response = await fetch(
-    `http://localhost:3000/api/user/verify-email?token=${payload.token}`,
+  return axios.get(
+    `http://localhost:3000/auth/verify-email?token=${payload.token}`,
     {
-      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     }
   );
-  const data: VerifiySuccess | VerifyError = await response.json();
-
-  if (!response.ok) {
-    const err = data as deleteError;
-    throw new Error(err.error || "Falló la verificación");
-  }
-  return data as VerifiySuccess;
 }
 
 //reenvio de verificacion email
 type ResendPayload = {
   email: string;
 };
-
-type resendSuccess = {
-  success: string;
-};
-
-type resendError = {
-  error: string;
-};
 export async function resendVerification(payload: ResendPayload) {
-  const response = await fetch(
-    `http://localhost:3000/api/user/resend-verification`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
-  const data: resendSuccess | resendError = await response.json();
-  if (!response.ok) {
-    const err = data as resendError;
-    throw new Error(err.error || "No se pudo reenviar el enlace");
-  }
-  return data as resendSuccess;
+  return axios.post(`http://localhost:3000/auth/resend-verification`, payload, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 //Envio de enlace de recuperacion de contraseña
@@ -290,32 +199,12 @@ type ForgotPayload = {
   email: string;
   gToken: string;
 };
-
-type ForgotSuccess = {
-  success: string;
-};
-
-type ForgotError = {
-  error: string;
-};
-
 export async function forgotPassword(payload: ForgotPayload) {
-  const response = await fetch(
-    `http://localhost:3000/api/user/forgot-password`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
-  const data: ForgotSuccess | ForgotError = await response.json();
-  if (!response.ok) {
-    const err = data as ForgotError;
-    throw new Error(err.error || "No se pudo recuperar la contraseña");
-  }
-  return data as ForgotSuccess;
+  return axios.post(`http://localhost:3000/auth/forgot-password`, payload, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 //establecer nueva contraseña
@@ -323,118 +212,77 @@ type RestorePayload = {
   token: string | null;
   password: string;
 };
-type RestoreSuccess = {
-  success: string;
-};
-type RestoreError = {
-  error: string;
-};
-
 export async function restorePassword(payload: RestorePayload) {
-  const response = await fetch(
-    `http://localhost:3000/api/user/recover-password?token=${payload.token}`,
+  return axios.post(
+    `http://localhost:3000/auth/recover-password?token=${payload.token}`,
+    payload.password,
     {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ password: payload.password }),
     }
   );
-  const data: RestoreSuccess | RestoreError = await response.json();
-  if (!response.ok) {
-    const err = data as RestoreError;
-    throw new Error(err.error || "No se pudo establecer la nueva contraseña");
-  }
-  return data as RestoreSuccess;
 }
 
 //llama al backend para validar campo username
 type PayloadUsernameValidation = {
   username: string;
 };
-type usernameValidationSuccess = {
-  success: string;
-};
-type usernameValidationError = {
-  error: string;
-};
 export async function usernameValidation(payload: PayloadUsernameValidation) {
-  const response = await fetch(
+  return axios.post(
     `http://localhost:3000/api/user/username-validation`,
+    payload,
     {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
     }
   );
-  const data: usernameValidationSuccess | usernameValidationError =
-    await response.json();
-  if (!response.ok) {
-    const err = data as usernameValidationError;
-    throw new Error(err.error || "No disponible");
-  }
-  return data as usernameValidationSuccess;
 }
 
 //llama al backend para validar campo username
 type PayloadEmailValidation = {
   email: string;
 };
-type emailValidationSuccess = {
-  success: string;
-};
-type emailValidationError = {
-  error: string;
-};
 export async function emailValidation(payload: PayloadEmailValidation) {
-  const response = await fetch(
+  return axios.post(
     `http://localhost:3000/api/user/email-validation`,
+    payload,
     {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
     }
   );
-  const data: emailValidationSuccess | emailValidationError =
-    await response.json();
-  if (!response.ok) {
-    const err = data as emailValidationError;
-    throw new Error(err.error || "No disponible");
-  }
-  return data as emailValidationSuccess;
 }
 
 //llama el backend para validar la contraseña via pwned
 type PayloadPasswordlValidation = {
   password: string;
 };
-type passwordValidationSuccess = {
-  success: string;
-};
-type passwordValidationError = {
-  error: string;
-};
 export async function passwordValidation(payload: PayloadPasswordlValidation) {
-  const response = await fetch(
+  return axios.post(
     `http://localhost:3000/api/user/password-validation`,
+    payload,
     {
-      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
     }
   );
-  const data: passwordValidationSuccess | passwordValidationError =
-    await response.json();
-  if (!response.ok) {
-    const err = data as passwordValidationError;
-    throw new Error(err.error || "No disponible");
-  }
-  return data as passwordValidationSuccess;
+}
+
+//llamada al logout
+export async function logOut(token: string | null) {
+  return axios.post(
+    "http://localhost:3000/auth/logout",
+    {},
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      withCredentials: true,
+    }
+  );
 }

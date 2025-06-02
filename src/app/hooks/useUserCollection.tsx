@@ -23,7 +23,6 @@ export function useUserCollection() {
   useEffect(() => {
     if (isAuthenticated && auth.user?.username) {
       handlerLoadCollection();
-      console.log("Llamando handlerLoadCollection()");
     }
   }, [isAuthenticated, auth.user?.username]);
 
@@ -33,62 +32,54 @@ export function useUserCollection() {
       const payload = {
         username: auth.user.username,
         nextCursor: auth.collection.nextCursor,
-        token: localStorage.getItem("token"),
+        token: auth.accessToken,
       };
-
-      try {
-        // Si ya se cargaron todos los enlaces, no hacer nada
-        if (
-          auth.collection.totalCount !== null &&
-          auth.collection.totalCount !== undefined &&
-          auth.collection.totalCount !== 0 &&
-          auth.collection.totalCount <= auth.collection.userLinks.length
-        )
-          return;
-
-        const data = await getUserCollection(payload);
-
-        // Manejo de la paginación
-        if (!auth.collection.nextCursor) {
+      // Si ya se cargaron todos los enlaces, no hacer nada
+      if (
+        auth.collection.totalCount !== null &&
+        auth.collection.totalCount !== undefined &&
+        auth.collection.totalCount !== 0 &&
+        auth.collection.totalCount <= auth.collection.userLinks.length
+      )
+        return;
+      getUserCollection(payload)
+        .then((data) => {
           dispatch(startLoadCollection());
-          dispatch(loadCollection(data));
-        } else if (auth.collection.nextCursor !== data.nextCursor) {
-          dispatch(startLoadCollection());
-          dispatch(pushCollection(data));
-        }
-      } catch (error) {
-        dispatch(
-          globalError(
-            error instanceof Error
-              ? error.message
-              : "Error al cargar enlaces del usuario"
-          )
-        );
-      }
+          if (!auth.collection.nextCursor) {
+            dispatch(loadCollection(data));
+          } else if (auth.collection.nextCursor !== data.nextCursor) {
+            dispatch(pushCollection(data));
+          }
+        })
+        .catch((error) => {
+          dispatch(
+            globalError(
+              error instanceof Error
+                ? error.message
+                : "Error al cargar enlaces del usuario"
+            )
+          );
+        });
     }
   };
 
   // Función para eliminar un enlace de la colección
   const deleteLinkHandler = async (id: string) => {
-    console.log(user?.username, localStorage.getItem("token"), id);
     toast.dismiss();
     const payload = {
-      token: localStorage.getItem("token"),
-      username: user?.username || "linkAdmin",
+      token: auth.accessToken,
+      username: auth.user?.username,
       linkId: id,
     };
-    try {
-      if (isAuthenticated) {
-        await deleteLink(payload);
-      }
-      dispatch(deleteFromCollection({ id }));
-      toast.warning("Enlace eliminado");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Error en el registro";
-      toast.error(message);
-      dispatch(globalError(message));
-    }
+    if (!isAuthenticated) return;
+    deleteLink(payload)
+      .then(() => {
+        dispatch(deleteFromCollection({ id }));
+        toast.warning("Enlace eliminado");
+      })
+      .catch((error) => {
+        toast.error(error.message);
+      });
   };
 
   return {

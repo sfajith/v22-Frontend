@@ -22,21 +22,17 @@ function VerifyEmail() {
 
   const verifiHandler = async () => {
     setTimeout(async () => {
-      try {
-        const response = await verifyAccount({ token });
-
-        if (response.success) {
+      verifyAccount({ token })
+        .then((response) => {
           setIsLoading(false);
           setVerify(true);
           setTimeout(() => {
             navigate("/");
           }, 2000);
-        }
-        return response.success;
-      } catch (error) {
-        setIsLoading(false);
-        console.log(error);
-      }
+        })
+        .catch((error) => {
+          setIsLoading(false);
+        });
     }, 2000);
   };
 

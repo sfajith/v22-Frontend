@@ -22,6 +22,7 @@ import md5 from "md5";
 import { ChangePasswordComponent } from "./ChangePasswordComponent";
 import { DeleteAccountComponent } from "./DeleteAccountComponent";
 import { Button } from "../ui/button";
+import { useUserAccount } from "../../app/hooks/useUserAccount";
 
 type PropAppSidebar = {
   email?: string;
@@ -32,9 +33,10 @@ export function AppSidebar({ email, username }: PropAppSidebar) {
   const hash = md5(email || "");
   const gravatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
 
+  const { handleLogOut } = useUserAccount();
+
   const logOutHandler = () => {
-    localStorage.removeItem("token"); // Eliminar token
-    window.location.href = "/";
+    handleLogOut();
   };
 
   return (

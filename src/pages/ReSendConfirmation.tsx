@@ -26,26 +26,21 @@ function ReSendConfirmation() {
       email,
     };
     setTimeout(async () => {
-      try {
-        dispatch(globalLoading());
-        const response = await resendVerification(payload);
-        if (response.success) {
+      dispatch(globalLoading());
+      resendVerification(payload)
+        .then((response) => {
           setEvento(null);
           toast.dismiss();
           toast.success(
             `La verificación de tu cuenta se envió al correo ${email}`
           );
           setGood(true);
-        }
-      } catch (error) {
-        setEvento(null);
-        toast.dismiss();
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "No se pudo eliminar la cuenta"
-        );
-      }
+        })
+        .catch((error) => {
+          setEvento(null);
+          toast.dismiss();
+          toast.error(error.message);
+        });
     }, 1000);
   };
   return (

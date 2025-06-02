@@ -16,27 +16,23 @@ import { toast } from "sonner";
 function Layout() {
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
-  const localToken: string | null = localStorage.getItem("token");
 
   // Manejador de recarga de página con toast.promise
   useEffect(() => {
-    if (localToken) {
-      const getData = async () => {
-        try {
-          const data = await checkToken(localToken);
-          if (data.ok === true) {
-            dispatch(loginSuccess({ localToken, user: data.user }));
-            // Puedes mostrar un toast opcional si lo deseas:
-            // toast.success("Sesión iniciada correctamente");
+    const getData = () => {
+      checkToken()
+        .then((data) => {
+          if (data.accessToken) {
+            dispatch(
+              loginSuccess({ accessToken: data.accessToken, user: data.user })
+            );
           }
-          // Si el token no es válido, simplemente no hacemos nada
-        } catch (error) {
-          // Error al verificar el token (puedes manejarlo si lo deseas)
-        }
-      };
-
-      getData();
-    }
+        })
+        .catch((error) => {
+          toast.error("Sesión expirada");
+        });
+    };
+    getData();
   }, []);
 
   // Mostrar errores o éxitos desde el slice, si existen

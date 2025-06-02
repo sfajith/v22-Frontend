@@ -12,7 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch } from "../../app/hooks";
-import { loginSuccess } from "../../features/auth/authSlice";
+import {
+  loginSuccess,
+  overWriteAccessToken,
+} from "../../features/auth/authSlice";
 import { loginUser } from "../../features/auth/authService";
 import { AlertCircle, Loader2 } from "lucide-react"; // Ícono de carga de Lucide
 import { useNavigate } from "react-router-dom";
@@ -71,9 +74,10 @@ export default function LoginDialog() {
           gToken,
         });
         dispatch(loginSuccess(data));
+        dispatch(overWriteAccessToken(data.accessToken));
         handlerLoadCollection();
         console.log(data);
-        localStorage.setItem("token", data.token);
+
         setErrorMessage(null);
         setOpen(false);
         toast.success("Ingresaste con exito!");

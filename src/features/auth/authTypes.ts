@@ -13,6 +13,7 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
+  accessToken: string | null;
   collection: {
     totalCount: number;
     nextCursor: string | null;

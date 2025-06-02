@@ -1,4 +1,8 @@
-import { changePassword, deleteAccount } from "@/features/auth/authService";
+import {
+  changePassword,
+  deleteAccount,
+  logOut,
+} from "@/features/auth/authService";
 import { useState } from "react";
 import { useAppSelector, useAppDispatch } from "../hooks";
 import {
@@ -21,12 +25,27 @@ export function useUserAccount() {
   const auth = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
 
+  const handleLogOut = async () => {
+    const token = auth.accessToken;
+
+    if (!auth.isAuthenticated) {
+      toast.error("No estas autenticado");
+      return;
+    }
+    logOut(token).then(() => {
+      toast.dismiss();
+      toast.warning("Cerraste la sesión");
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    });
+  };
+
   const handlerChangePassword = async (
     password: string,
     newPassword: string
   ) => {
     setEvento("loading");
-    const token = localStorage.getItem("token");
 
     if (!auth.user) {
       toast.error("Usuario no autenticado");
@@ -35,79 +54,48 @@ export function useUserAccount() {
     }
 
     const payload = {
-      token,
+      token: auth.accessToken,
       username: auth.user.username,
       body: { password, newPassword },
     };
 
-    try {
-      const response = await changePassword(payload);
-
-      if (response.success) {
+    changePassword(payload)
+      .then((response) => {
         setEvento("success");
-        dispatch(globalSuccess(response.success));
+        toast.dismiss();
         toast.success("Contraseña cambiada con éxito");
-
         setTimeout(() => {
-          localStorage.removeItem("token"); // Eliminar token
-          window.location.href = "/";
-        }, 2000);
-      } else {
-        throw new Error("No se pudo cambiar la contraseña");
-      }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Error al cambiar la contraseña";
-
-      toast.error(errorMessage);
-      setEvento("error");
-
-      dispatch(globalError(errorMessage));
-      setTimeout(() => {
-        dispatch(disableError());
-      }, 5000);
-    }
+          handleLogOut();
+        }, 1000);
+      })
+      .catch((error) => {
+        setEvento(null);
+        toast.error(error.message);
+      });
   };
 
   const handlerDeleteUserAcount = async (password: string) => {
     toast.loading("Verificando información...");
-    const token = localStorage.getItem("token");
     if (auth.user) {
       const payload = {
-        token,
+        token: auth.accessToken,
         username: auth.user.username,
         body: {
           password,
         },
       };
-      try {
-        const response = await deleteAccount(payload);
-        if (response.success) {
+
+      deleteAccount(payload)
+        .then((response) => {
           toast.dismiss();
-          toast.warning("cuenta eliminada con exito!");
+          toast.warning("Cuenta eliminada con exito!");
           setForm({ password: "", newPassword: "", rePassword: "" });
-          dispatch(globalSuccess(response.success));
-          setTimeout(() => {
-            localStorage.removeItem("token"); // Eliminar token
-            window.location.href = "/";
-          }, 2000);
-        }
-      } catch (error) {
-        toast.dismiss();
-
-        setForm({ password: "", newPassword: "", rePassword: "" });
-
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "No se pudo eliminar la cuenta"
-        );
-        setTimeout(() => {
-          dispatch(disableError());
-        }, 5000);
-      }
+          handleLogOut();
+        })
+        .catch((error) => {
+          setEvento(null);
+          toast.error(error.message);
+        });
     }
   };
   return {
@@ -117,5 +105,6 @@ export function useUserAccount() {
     evento,
     setEvento,
     setForm,
+    handleLogOut,
   };
 }
