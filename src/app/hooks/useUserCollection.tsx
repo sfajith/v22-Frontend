@@ -33,7 +33,6 @@ export function useUserCollection() {
       const payload = {
         username: auth.user.username,
         nextCursor: auth.collection.nextCursor,
-        token: auth.accessToken,
       };
       // Si ya se cargaron todos los enlaces, no hacer nada
       if (
@@ -68,7 +67,6 @@ export function useUserCollection() {
   const deleteLinkHandler = async (id: string) => {
     toast.dismiss();
     const payload = {
-      token: auth.accessToken,
       username: auth.user?.username,
       linkId: id,
     };

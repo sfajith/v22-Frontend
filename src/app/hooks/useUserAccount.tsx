@@ -54,7 +54,6 @@ export function useUserAccount() {
     }
 
     const payload = {
-      token: auth.accessToken,
       username: auth.user.username,
       body: { password, newPassword },
     };
@@ -78,7 +77,6 @@ export function useUserAccount() {
     toast.loading("Verificando información...");
     if (auth.user) {
       const payload = {
-        token: auth.accessToken,
         username: auth.user.username,
         body: {
           password,

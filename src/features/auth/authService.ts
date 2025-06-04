@@ -80,7 +80,6 @@ export async function checkToken(): Promise<TestLogin> {
 type CollectionPayload = {
   username: string;
   nextCursor: string | null;
-  token: string | null;
 };
 
 type CollectionResponse = {
@@ -89,7 +88,7 @@ type CollectionResponse = {
   totalCount: number;
 };
 
-export async function getUserCollection(
+/* export async function getUserCollection(
   payload: CollectionPayload
 ): Promise<CollectionResponse> {
   const cursor = payload.nextCursor ?? "";
@@ -108,12 +107,27 @@ export async function getUserCollection(
       console.error("Error:", error.response?.data);
       throw new Error(error.response?.data?.error || "Expiró la sesión");
     });
+} */
+
+export async function getUserCollection(
+  payload: CollectionPayload
+): Promise<CollectionResponse> {
+  const cursor = payload.nextCursor ?? "";
+  let url = `/api/user/${payload.username}/collection`;
+  if (cursor) url += `?cursor=${cursor}`;
+
+  return instance
+    .get<CollectionResponse>(url) // Usa la instancia que ya añade los headers
+    .then((response) => response.data)
+    .catch((error) => {
+      console.error("Error:", error.response?.data);
+      throw new Error(error.response?.data?.error || "Expiró la sesión");
+    });
 }
 
 //funcion para eliminar enlace
 export type deletePayload = {
   linkId: string;
-  token: string | null;
   username?: string;
 };
 
@@ -130,24 +144,16 @@ export type deletePayload = {
 } */
 
 export async function deleteLink(payload: deletePayload) {
-  return instance.delete(
-    `/api/user/${payload.username}/${payload.linkId}`, // Solo la ruta relativa, baseURL ya está en la instancia
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  return instance.delete(`/api/user/${payload.username}/${payload.linkId}`);
 }
 
 //cambio de contraseña
 type changeType = {
   username: string;
-  token: string | null;
   body: { password: string; newPassword: string };
 };
 
-export async function changePassword(payload: changeType) {
+/* export async function changePassword(payload: changeType) {
   return axios.put(
     `http://localhost:3000/auth/${payload.username}/reset`,
     payload.body,
@@ -158,25 +164,18 @@ export async function changePassword(payload: changeType) {
       },
     }
   );
+} */
+export async function changePassword(payload: changeType) {
+  return instance.put(`/auth/${payload.username}/reset`, payload.body);
 }
 
 //funcion para borrar cuenta
 type deleteType = {
   username: string;
-  token: string | null;
   body: { password: string };
 };
 export async function deleteAccount(payload: deleteType) {
-  return axios.post(
-    `http://localhost:3000/auth/${payload.username}/delete`,
-    payload.body,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${payload.token}`,
-      },
-    }
-  );
+  return instance.post(`/auth/${payload.username}/delete`, payload.body);
 }
 
 //verificacion de la cuenta

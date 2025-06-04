@@ -1,4 +1,5 @@
 import { Link } from "../links/linkTypes";
+import instance from "../../lib/axiosInstance";
 type LinkType = Link;
 type LinkErrorType = { error: string };
 type LinkPayload = {
@@ -9,7 +10,7 @@ type LinkPayload = {
   };
 };
 
-export async function newLink(payload: LinkPayload) {
+/* export async function newLink(payload: LinkPayload) {
   const response = await fetch("http://localhost:3000/new", {
     method: "POST",
     headers: {
@@ -24,6 +25,16 @@ export async function newLink(payload: LinkPayload) {
     throw new Error(err.error || "Error al acortar enlace");
   }
   return data as LinkType;
+} */
+
+export async function newLink(payload: LinkPayload): Promise<LinkType> {
+  try {
+    const response = await instance.post<LinkType>("/new", payload.link);
+    return response.data;
+  } catch (error: any) {
+    const message = error.response?.data?.error || "Error al acortar enlace";
+    throw new Error(message);
+  }
 }
 
 //validacion en tiempo real del usercode

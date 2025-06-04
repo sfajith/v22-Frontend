@@ -11,7 +11,10 @@ import { overWriteAccessToken } from "../features/auth/authSlice";
 
 const instance: AxiosInstance = axios.create({
   baseURL: "http://localhost:3000/",
-  withCredentials: true, // Importante para enviar la cookie HttpOnly
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // No guardes accessToken aquí:
