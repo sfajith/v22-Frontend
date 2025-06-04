@@ -39,6 +39,7 @@ function Home() {
     isAuthenticated,
     collection,
     deleteLinkHandler,
+    accessToken,
   } = useUserCollection();
 
   // Al montar el componente, cargamos los enlaces desde el backend si el usuario está autenticado,
@@ -75,7 +76,7 @@ function Home() {
   };
 
   const newLinkPayload = {
-    token: localStorage.getItem("token"),
+    token: accessToken,
     link: {
       originalUrl: form.originalUrl,
       userCode: form.userCode,

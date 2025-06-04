@@ -18,6 +18,7 @@ export function useUserCollection() {
   const collection = auth.collection;
   const user = auth.user;
   const error = auth.error;
+  const accessToken = auth.accessToken;
 
   // Cargar los enlaces cuando el usuario esté autenticado y su nombre de usuario esté disponible
   useEffect(() => {
@@ -89,5 +90,6 @@ export function useUserCollection() {
     collection,
     user,
     error,
+    accessToken,
   };
 }

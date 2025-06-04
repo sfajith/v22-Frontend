@@ -1,4 +1,5 @@
 import { Link } from "../links/linkTypes";
+import instance from "../../lib/axiosInstance";
 import axios from "axios";
 export type LoginPayload = {
   email: string;
@@ -116,13 +117,24 @@ export type deletePayload = {
   username?: string;
 };
 
-export async function deleteLink(payload: deletePayload) {
+/* export async function deleteLink(payload: deletePayload) {
   return axios.delete(
     `http://localhost:3000/api/user/${payload.username}/${payload.linkId}`,
     {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${payload.token}`,
+      },
+    }
+  );
+} */
+
+export async function deleteLink(payload: deletePayload) {
+  return instance.delete(
+    `/api/user/${payload.username}/${payload.linkId}`, // Solo la ruta relativa, baseURL ya está en la instancia
+    {
+      headers: {
+        "Content-Type": "application/json",
       },
     }
   );
