@@ -80,7 +80,7 @@ function ReSendConfirmation() {
             <div className="pt-2">
               <Button
                 type="submit"
-                className="cursor-pointer w-full py-2 px-4 text-white text-lg font-semibold tracking-tight rounded-full bg-gradient-to-r from-[#751B80] to-[#A84ACF] transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 text-lg font-semibold tracking-tight text-white transition rounded-full cursor-pointer bg-gradient-mascoti hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={evento === "loading"}
               >
                 {evento === "loading" ? (

@@ -88,27 +88,6 @@ type CollectionResponse = {
   totalCount: number;
 };
 
-/* export async function getUserCollection(
-  payload: CollectionPayload
-): Promise<CollectionResponse> {
-  const cursor = payload.nextCursor ?? "";
-  let url = `http://localhost:3000/api/user/${payload.username}/collection`;
-  if (cursor) url += `?cursor=${cursor}`;
-
-  return axios
-    .get<CollectionResponse>(url, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${payload.token}`,
-      },
-    })
-    .then((response) => response.data)
-    .catch((error) => {
-      console.error("Error:", error.response?.data);
-      throw new Error(error.response?.data?.error || "Expiró la sesión");
-    });
-} */
-
 export async function getUserCollection(
   payload: CollectionPayload
 ): Promise<CollectionResponse> {
@@ -131,18 +110,6 @@ export type deletePayload = {
   username?: string;
 };
 
-/* export async function deleteLink(payload: deletePayload) {
-  return axios.delete(
-    `http://localhost:3000/api/user/${payload.username}/${payload.linkId}`,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${payload.token}`,
-      },
-    }
-  );
-} */
-
 export async function deleteLink(payload: deletePayload) {
   return instance.delete(`/api/user/${payload.username}/${payload.linkId}`);
 }
@@ -153,18 +120,6 @@ type changeType = {
   body: { password: string; newPassword: string };
 };
 
-/* export async function changePassword(payload: changeType) {
-  return axios.put(
-    `http://localhost:3000/auth/${payload.username}/reset`,
-    payload.body,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${payload.token}`,
-      },
-    }
-  );
-} */
 export async function changePassword(payload: changeType) {
   return instance.put(`/auth/${payload.username}/reset`, payload.body);
 }

@@ -22,8 +22,8 @@ const instance: AxiosInstance = axios.create({
 
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const accessToken = store.getState().auth.accessToken; // 🚀 LÉELO SIEMPRE AQUÍ
-    if (config.headers) {
+    const accessToken = store.getState().auth.accessToken;
+    if (accessToken && config.headers) {
       config.headers.set("Authorization", `Bearer ${accessToken}`);
     }
     return config;
@@ -76,10 +76,3 @@ instance.interceptors.response.use(
 );
 
 export default instance;
-
-/* // Ejemplo de uso
-instance
-  .get("/datos")
-  .then((res: AxiosResponse) => console.log(res.data))
-  .catch((err: AxiosError) => console.error(err));
- */

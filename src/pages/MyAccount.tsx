@@ -28,7 +28,7 @@ function MyAccount(): React.ReactElement {
     <div className="p-6">
       <div className="grid grid-cols-4 gap-4">
         <TotalCard
-          title="Total de enlaces"
+          title="Enlaces activos"
           children={
             <CountUp end={collection.totalCount} decimals={0} duration={2} />
           }

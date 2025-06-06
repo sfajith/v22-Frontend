@@ -9,7 +9,6 @@ import { LinkList } from "../components/Home/LinkList";
 import CardList from "../components/myAccount/CardList";
 import { FiCopy } from "react-icons/fi";
 import { toast } from "sonner";
-import UserCode from "../components/UserCode";
 import { useUserCollection } from "../app/hooks/useUserCollection";
 import {
   addNewLink,
@@ -17,6 +16,9 @@ import {
   globalError,
 } from "../features/auth/authSlice";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { lazy, Suspense } from "react";
+
+const UserCode = lazy(() => import("../components/UserCode"));
 
 function Home() {
   // `userCode` es opcional y se usa solo cuando el usuario quiere personalizar la URL
@@ -85,7 +87,6 @@ function Home() {
 
   // Maneja la creación de un nuevo enlace:
   // Si el usuario está autenticado, se guarda en el estado global.
-  // Si no lo está, se almacena en localStorage para persistencia local.
   const newLinkHandler = async () => {
     toast.dismiss();
     if (!form.originalUrl) {
@@ -247,7 +248,37 @@ function Home() {
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <UserCode form={form} setForm={setForm} />
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center mx-auto mt-4">
+                      <svg
+                        className="w-6 h-6 text-gray-400 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        ></path>
+                      </svg>
+                      <span className="ml-2 text-gray-400">
+                        Cargando personalizador...
+                      </span>
+                    </div>
+                  }
+                >
+                  <UserCode form={form} setForm={setForm} />
+                </Suspense>
               </motion.div>
             )}
           </AnimatePresence>

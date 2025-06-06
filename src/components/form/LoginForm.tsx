@@ -17,7 +17,7 @@ import {
   overWriteAccessToken,
 } from "../../features/auth/authSlice";
 import { loginUser } from "../../features/auth/authService";
-import { AlertCircle, Loader2 } from "lucide-react"; // Ícono de carga de Lucide
+import { AlertCircle, Eye, EyeClosed, Loader2 } from "lucide-react"; // Ícono de carga de Lucide
 import { useNavigate } from "react-router-dom";
 import { useUserCollection } from "../../app/hooks/useUserCollection";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ export default function LoginDialog() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [eyePassword, setEyePassword] = useState<boolean>(false);
   const isFormValid = form.email !== "" && form.password !== "";
   const navigate = useNavigate();
 
@@ -145,15 +146,63 @@ export default function LoginDialog() {
               >
                 Contraseña
               </label>
-              <Input
-                disabled={isLoading}
-                id="password"
-                type="password"
-                placeholder="tu contraseña"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="rounded-full"
-              />
+              <div className="relative">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={eyePassword ? "text" : "password"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Input
+                      disabled={isLoading}
+                      id="password"
+                      type={eyePassword ? "text" : "password"}
+                      placeholder="tu contraseña"
+                      value={form.password}
+                      onChange={(e) =>
+                        setForm({ ...form, password: e.target.value })
+                      }
+                      className="rounded-full"
+                    />
+                  </motion.div>
+                </AnimatePresence>
+                <div className="w-full px-4 mt-1">
+                  <div className="absolute flex items-center -translate-y-1/2 right-2 top-2/4">
+                    {/* Botón mostrar/ocultar */}
+                    <button
+                      type="button"
+                      onClick={() => setEyePassword(!eyePassword)}
+                      className="cursor-pointer text-zinc-500 hover:text-zinc-700"
+                    >
+                      <AnimatePresence mode="wait">
+                        {eyePassword ? (
+                          <motion.div
+                            key="eye-closed"
+                            initial={{ opacity: 0, rotate: -10 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: 10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <EyeClosed />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="eye"
+                            initial={{ opacity: 0, rotate: 10 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: -10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Eye />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
             <AnimatePresence initial={false}>
               <div className="flex flex-col justify-start w-full gap-1">
