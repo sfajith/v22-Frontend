@@ -27,10 +27,10 @@ export function LinkList({ deleteLinkHandler, collection }: LinklistProps) {
           <h3 className="text-center text-gray-600">Mis últimos enlaces</h3>
           {/* Contenedor scrollable con límite de altura */}
           <ScrollArea className="w-[660px] max-h-[300px] rounded-md border mt-2 p-4">
-            <motion.ul className="grid grid-cols-2 justify-items-center gap-3">
+            <motion.ul className="grid grid-cols-2 gap-3 justify-items-center">
               <AnimatePresence>
                 {/* Mapeo de enlaces del usuario con animación al montar/desmontar */}
-                {collection.userLinks.map((link, index) => (
+                {reversedUserLinks.map((link, index) => (
                   <motion.li
                     key={link.idLink}
                     initial={{ opacity: 0, y: 20 }}

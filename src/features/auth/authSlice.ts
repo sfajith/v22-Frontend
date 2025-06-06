@@ -88,8 +88,13 @@ const authSlice = createSlice({
       state.collection.isLoading = false;
     },
     addNewLink(state, action) {
-      state.collection.userLinks.unshift(action.payload.link);
-      state.collection.totalCount = state.collection.totalCount + 1;
+      if (state.isAuthenticated === false) {
+        state.collection.userLinks.push(action.payload.link);
+        state.collection.totalCount = state.collection.totalCount + 1;
+      } else {
+        state.collection.userLinks.unshift(action.payload.link);
+        state.collection.totalCount = state.collection.totalCount + 1;
+      }
     },
     loadCollectionFailure(state, action) {
       state.collection.isLoading = false;
